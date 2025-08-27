@@ -1,35 +1,30 @@
+> Notar que **X** corresponde al número del grupo asignado.
 
-# Grupo 04  
+# Grupo x
 
-## Integrantes
+Este es el repositorio del *Grupo X*, cuyos integrantes son:
 
-| Nombre completo                      | Rol    | RUT            |
-|---------------------------------------|--------|----------------|
-| Alexander Toro Astudillo             | (201)  | 202304647-7    |
-| Bárbara Camilo González              | (201)  | 202304567-5    |
-| Benjamín Torres Hormazábal           | (201)  | 202373539-6    |
-| Manuel Vega Lopez                    | (201)  | 202304644-2    |
+* Integrante 1 - Rol
+* Integrante 2 - Rol
+* Integrante 3 - Rol
+* Integrante 4 - Rol
+* **Tutor**: Nombre Tutor
 
----
+## Wiki
 
-## Presentación del Cliente
+> Obtener enlace desde el home de la wiki del repo.
 
-- [Enlace al video de la presentación del cliente](#) 
+Puede acceder a la Wiki mediante el siguiente [enlace](https://gitlab.inf.utfsm.cl/)
 
----
+## Videos
 
-## Wiki del Proyecto
+> Reemplazar con los enlaces correspondientes
 
-- [Enlace a la Wiki de trabajo](#) 
+* [Video presentación cliente](https://www.youtube.com)
+* [Video presentación avance 1](https://www.youtube.com/)
+* Etc ...
 
----
+## Aspectos técnicos relevantes
 
-## Aspectos Técnicos Relevantes
-
-
-
-## Evidencia de levantamiento del proyecto base
-
-
-
+_Todo aspecto relevante cuando para poder usar el proyecto o consideraciones del proyecto base a ser entregado_
 
