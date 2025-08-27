@@ -32,8 +32,4 @@
 
 
 
-Si el equipo encuentra dificultades o impedimentos para levantar el proyecto base, dichos problemas deben documentarse en la misma sección de evidencia de la Wiki.
 
----
-
-> **Nota:** Actualizar este README con los enlaces y detalles técnicos a medida que avance el proyecto.
