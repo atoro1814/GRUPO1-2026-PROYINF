@@ -6,7 +6,7 @@ Este es el repositorio del *Grupo X*, cuyos integrantes son:
 
 * Alexander Toro Astudillo - 202304647-7
 * Bárbara Camilo González - 202304567-5
-* Integrante 3 - Rol
+* Manuel Vega Lopez - 202304644-2
 * Integrante 4 - Rol
 * **Tutor**: Nombre Tutor
 
