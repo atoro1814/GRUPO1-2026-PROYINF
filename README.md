@@ -25,5 +25,5 @@ Puede acceder a la Wiki mediante el siguiente [enlace](https://github.com/atoro1
 
 ## Aspectos técnicos relevantes
 
-_Todo aspecto relevante cuando para poder usar el proyecto o consideraciones del proyecto base a ser entregado_
+Hasta el momento de la entrega del Hito 2, se conectó la base del proyecto propuesta por los ayudantes con el Github íntegramente hecho y trabajado por nosotros. Aquel que desee verificar un avance de código deberá clonar NUESTRO repositorio que ya cuenta con dicha conexión y, asumiendo que tiene las tecnologías necesarias y estipuladas dentro del README de mi_proyecto_node_docker, puede interactuar con la terminal de Docker y acceder al primer vistazo de la pagina. Solo se pretendió levantar esta última y verficar que podemos empezar a editar su contenido (se editó index.js para que muestre un mensaje diferente al original notificando que el desarrollo a posteriori será funcional).
 
