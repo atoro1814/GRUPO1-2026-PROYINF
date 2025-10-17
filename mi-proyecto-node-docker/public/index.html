@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototipo - Préstamos de Consumo Digitales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #10B981; /* emerald-500 */
+            cursor: pointer;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        input[type=range]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #10B981;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        /* Estilos para el mensaje de notificación */
+        #toast {
+            transition: opacity 0.3s, transform 0.3s;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-lg overflow-hidden relative">
+        <!-- Contenedor de las Vistas -->
+        <div id="app-container">
+
+            <!-- Vista 1: Bienvenida (sin cambios) -->
+            <div id="welcome-view" class="p-8 text-center fade-in">
+                <div class="mb-6">
+                    <i class="fas fa-university text-5xl text-emerald-500"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Tu Préstamo Digital</h1>
+                <p class="text-gray-600 mb-8">Consigue el financiamiento para tus sueños en minutos, 100% online.</p>
+                <button onclick="changeView('simulator-view')" class="w-full bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-600 transition duration-300 shadow-md">
+                    Simular mi crédito
+                </button>
+                <p class="text-xs text-gray-400 mt-4">¿Ya eres cliente? <a href="#" class="text-emerald-500">Inicia Sesión</a></p>
+            </div>
+
+            <!-- Vista 2: Simulador (Actualizada) -->
+            <div id="simulator-view" class="p-6 md:p-8 hidden fade-in">
+                <div class="flex items-center mb-6">
+                    <button onclick="changeView('welcome-view')" class="text-gray-500 hover:text-gray-700"><i class="fas fa-arrow-left"></i></button>
+                    <h2 class="text-2xl font-bold text-gray-800 text-center flex-grow">Simula y Compara</h2>
+                </div>
+                
+                <!-- Controles del Simulador -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Monto a solicitar:</label>
+                        <input type="text" id="amount-display" class="w-full text-center text-2xl font-bold bg-gray-100 rounded-lg py-2" value="$1.000.000" readonly>
+                        <input type="range" id="amount" min="500000" max="50000000" step="100000" value="1000000" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2">
+                    </div>
+                    <div>
+                        <label for="months" class="block text-gray-700 text-sm font-bold mb-2">Plazo en meses:</label>
+                        <input type="text" id="months-display" class="w-full text-center text-2xl font-bold bg-gray-100 rounded-lg py-2" value="24 meses" readonly>
+                        <input type="range" id="months" min="6" max="60" step="1" value="24" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mt-2">
+                    </div>
+                </div>
+
+                <!-- Detalle del Préstamo (Actualizado para cumplir HU) -->
+                <div class="bg-emerald-50 p-4 rounded-lg text-center border border-emerald-200">
+                    <p class="text-gray-600 text-sm">Cuota mensual estimada</p>
+                    <p id="monthly-payment" class="text-3xl font-bold text-emerald-600">$48.486</p>
+                    <div class="grid grid-cols-2 gap-4 mt-3 text-sm">
+                        <div class="text-left">
+                            <p class="text-gray-500">Total a pagar:</p>
+                            <p id="total-payment" class="font-semibold text-gray-800">$1.163.664</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-gray-500">Total intereses:</p>
+                            <p id="total-interest" class="font-semibold text-gray-800">$163.664</p>
+                        </div>
+                    </div>
+                     <p class="text-xs text-gray-500 mt-2">Tasa de interés referencial: 1.5% mensual</p>
+                </div>
+
+                <div class="flex items-center gap-4 mt-6">
+                    <button onclick="addForComparison()" class="w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-plus-circle"></i> Agregar para Comparar
+                    </button>
+                    <button onclick="changeView('form-view')" class="w-full bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-600 transition duration-300 shadow-md">
+                        ¡Lo quiero!
+                    </button>
+                </div>
+                
+                <!-- NUEVA SECCIÓN: Comparador de Escenarios -->
+                <div id="comparison-container" class="mt-8 hidden">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Mis Escenarios</h3>
+                    <div id="comparison-slots" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Las tarjetas de comparación se insertarán aquí -->
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- Vistas 3, 4 y 5 (sin cambios) -->
+            <div id="form-view" class="p-8 hidden fade-in">
+                 <div class="flex items-center mb-6">
+                    <button onclick="changeView('simulator-view')" class="text-gray-500 hover:text-gray-700"><i class="fas fa-arrow-left"></i></button>
+                    <h2 class="text-2xl font-bold text-gray-800 text-center flex-grow">Completa tus datos</h2>
+                </div>
+                <form id="loan-form">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="fullname">Nombre Completo</label>
+                        <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="fullname" type="text" placeholder="Ej: Juan Pérez González">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="rut">RUT</label>
+                        <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="rut" type="text" placeholder="Ej: 12.345.678-9">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Correo Electrónico</label>
+                        <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="email" type="email" placeholder="juan.perez@email.com">
+                    </div>
+                     <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="income">Ingreso Mensual Líquido</label>
+                        <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="income" type="number" placeholder="$800.000">
+                    </div>
+                    <button type="button" onclick="submitApplication()" class="w-full bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-600 transition duration-300 shadow-md">
+                        Enviar Solicitud
+                    </button>
+                </form>
+            </div>
+            <div id="loading-view" class="p-8 hidden fade-in text-center">
+                 <div class="flex flex-col items-center justify-center h-96">
+                    <i class="fas fa-spinner fa-spin text-5xl text-emerald-500"></i>
+                    <h2 class="text-2xl font-bold text-gray-800 mt-6">Evaluando tu solicitud...</h2>
+                    <p class="text-gray-600 mt-2">Estamos consultando tu perfil de riesgo en segundos.</p>
+                </div>
+            </div>
+            <div id="approved-view" class="p-8 hidden fade-in text-center">
+                <div class="flex flex-col items-center justify-center h-96">
+                    <div class="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-check text-5xl text-emerald-500"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-800">¡Crédito Aprobado!</h2>
+                    <p class="text-gray-600 mt-2 mb-6">Felicidades, <span id="user-name" class="font-semibold"></span>. Tu préstamo ha sido aprobado.</p>
+                    <button onclick="changeView('welcome-view')" class="w-full bg-gray-700 text-white font-bold py-3 px-4 rounded-lg hover:bg-gray-800 transition duration-300">
+                        Finalizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast para notificaciones -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-3">
+        <p id="toast-message"></p>
+    </div>
+
+    <script>
+        const views = ['welcome-view', 'simulator-view', 'form-view', 'loading-view', 'approved-view'];
+        
+        function changeView(targetViewId) {
+            views.forEach(viewId => {
+                const viewElement = document.getElementById(viewId);
+                if (viewId === targetViewId) {
+                    viewElement.classList.remove('hidden');
+                    viewElement.classList.remove('fade-in');
+                    void viewElement.offsetWidth;
+                    viewElement.classList.add('fade-in');
+                } else {
+                    viewElement.classList.add('hidden');
+                }
+            });
+        }
+
+        const amountSlider = document.getElementById('amount');
+        const monthsSlider = document.getElementById('months');
+        const amountDisplay = document.getElementById('amount-display');
+        const monthsDisplay = document.getElementById('months-display');
+        const monthlyPaymentDisplay = document.getElementById('monthly-payment');
+        const totalPaymentDisplay = document.getElementById('total-payment');
+        const totalInterestDisplay = document.getElementById('total-interest');
+        const interestRate = 0.015;
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(value);
+        }
+
+        function calculateLoan() {
+            const principal = parseFloat(amountSlider.value);
+            const months = parseInt(monthsSlider.value);
+            
+            let monthlyPayment = principal / months;
+            if (interestRate > 0) {
+                 monthlyPayment = principal * (interestRate * Math.pow(1 + interestRate, months)) / (Math.pow(1 + interestRate, months) - 1);
+            }
+            
+            const totalPayment = monthlyPayment * months;
+            const totalInterest = totalPayment - principal;
+
+            amountDisplay.value = formatCurrency(principal);
+            monthsDisplay.value = `${months} meses`;
+            monthlyPaymentDisplay.textContent = formatCurrency(monthlyPayment);
+            totalPaymentDisplay.textContent = formatCurrency(totalPayment);
+            totalInterestDisplay.textContent = formatCurrency(totalInterest);
+        }
+
+        amountSlider.addEventListener('input', calculateLoan);
+        monthsSlider.addEventListener('input', calculateLoan);
+
+        // --- NUEVA LÓGICA PARA EL COMPARADOR ---
+        const comparisonContainer = document.getElementById('comparison-container');
+        const comparisonSlots = document.getElementById('comparison-slots');
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-3');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-3');
+            }, 3000);
+        }
+
+        function addForComparison() {
+            if (comparisonSlots.children.length >= 2) {
+                showToast('Puedes comparar un máximo de 2 escenarios.');
+                return;
+            }
+
+            comparisonContainer.classList.remove('hidden');
+
+            const scenario = {
+                amount: amountDisplay.value,
+                months: monthsDisplay.value,
+                monthlyPayment: monthlyPaymentDisplay.textContent,
+                totalPayment: totalPaymentDisplay.textContent,
+                totalInterest: totalInterestDisplay.textContent
+            };
+
+            const card = document.createElement('div');
+            card.className = 'bg-blue-50 p-4 rounded-lg border border-blue-200 relative animate-fade-in';
+            card.innerHTML = `
+                <button onclick="removeComparison(this)" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xs">&times;</button>
+                <h4 class="font-bold text-blue-800 mb-2">Escenario ${comparisonSlots.children.length + 1}</h4>
+                <div class="text-sm space-y-1">
+                    <p><strong>Monto:</strong> ${scenario.amount}</p>
+                    <p><strong>Plazo:</strong> ${scenario.months}</p>
+                    <p class="mt-2 pt-2 border-t border-blue-100"><strong>Cuota:</strong> <span class="font-bold text-lg text-blue-700">${scenario.monthlyPayment}</span></p>
+                    <p><strong>Total a Pagar:</strong> ${scenario.totalPayment}</p>
+                </div>
+                <button onclick="changeView('form-view')" class="w-full mt-4 bg-blue-500 text-white text-sm font-bold py-2 px-3 rounded-lg hover:bg-blue-600 transition duration-300">
+                    Seleccionar esta opción
+                </button>
+            `;
+            comparisonSlots.appendChild(card);
+        }
+        
+        function removeComparison(button) {
+            button.parentElement.remove();
+            if (comparisonSlots.children.length === 0) {
+                comparisonContainer.classList.add('hidden');
+            }
+            // Re-numerar los escenarios restantes
+            Array.from(comparisonSlots.children).forEach((card, index) => {
+                card.querySelector('h4').textContent = `Escenario ${index + 1}`;
+            });
+        }
+        // --- FIN DE LA NUEVA LÓGICA ---
+
+        function submitApplication() {
+            const fullName = document.getElementById('fullname').value;
+            if (fullName.trim() === '') {
+                showToast('Por favor, ingresa tu nombre completo.');
+                return;
+            }
+            changeView('loading-view');
+            setTimeout(() => {
+                const userNameElement = document.getElementById('user-name');
+                userNameElement.textContent = fullName.split(' ')[0];
+                changeView('approved-view');
+            }, 3000);
+        }
+        
+        window.onload = () => {
+            calculateLoan();
+        };
+    </script>
+</body>
+</html>
