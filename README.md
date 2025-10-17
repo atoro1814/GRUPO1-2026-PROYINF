@@ -6,7 +6,8 @@ Este es el repositorio del Grupo 10, cuyos integrantes son:
 * Bárbara Camilo González - 202304567-5
 * Manuel Vega Lopez - 202304644-2
 * Benjamín Torres Hormazábal - 202373539-6
-* **Tutor**: Felipe Fernández
+* **Ayudante**: Felipe Fernández
+* **Profesora**: Luz Chourio
 
 ## Requisitos Previos
 
