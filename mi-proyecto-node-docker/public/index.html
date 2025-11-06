@@ -145,7 +145,12 @@
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="income">Ingreso Mensual Líquido</label>
                         <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="income" type="number" placeholder="$800.000">
                     </div>
-                    <button type="button" onclick="submitApplication()" class="w-full bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-600 transition duration-300 shadow-md">
+                     <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="documents">Documentos (DNI, comprobante)</label>
+                        <input id="documents" type="file" multiple class="w-full" />
+                        <p class="text-xs text-gray-400 mt-1">Puedes subir hasta 5 archivos.</p>
+                    </div>
+                    <button type="button" id="submit-btn" onclick="submitApplication()" class="w-full bg-emerald-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-emerald-600 transition duration-300 shadow-md">
                         Enviar Solicitud
                     </button>
                 </form>
@@ -291,19 +296,64 @@
         }
         // --- FIN DE LA NUEVA LÓGICA ---
 
-        function submitApplication() {
+        async function submitApplication() {
             const fullName = document.getElementById('fullname').value;
-            if (fullName.trim() === '') {
-                showToast('Por favor, ingresa tu nombre completo.');
-                return;
+            const rut = document.getElementById('rut').value;
+            const email = document.getElementById('email').value;
+            const income = document.getElementById('income').value;
+            const documentsInput = document.getElementById('documents');
+            const amount = document.getElementById('amount').value;
+            const months = document.getElementById('months').value;
+
+            if (!fullName.trim() || !rut.trim() || !email.trim() || !income) {
+              showToast('Por favor completa todos los campos obligatorios.');
+              return;
             }
+
+            if (documentsInput.files.length === 0) {
+              showToast('Por favor adjunta al menos un documento requerido.');
+              return;
+            }
+
             changeView('loading-view');
-            setTimeout(() => {
-                const userNameElement = document.getElementById('user-name');
-                userNameElement.textContent = fullName.split(' ')[0];
-                changeView('approved-view');
-            }, 3000);
-        }
+            const formData = new FormData();
+            formData.append('fullname', fullName);
+            formData.append('rut', rut);
+            formData.append('email', email);
+            formData.append('income', income);
+            formData.append('amount', amount);
+            formData.append('months', months);
+
+            Array.from(documentsInput.files).forEach((file) => {
+              formData.append('documents', file);
+            });
+
+            try {
+              const submitBtn = document.getElementById('submit-btn');
+              submitBtn.disabled = true;
+              const resp = await fetch('/apply', {
+                method: 'POST',
+                body: formData
+              });
+              const json = await resp.json();
+              submitBtn.disabled = false;
+
+              if (!resp.ok) {
+                changeView('form-view');
+                showToast(json.message || 'No se pudo enviar la solicitud.');
+                return;
+              }
+
+              // éxito
+              const userNameElement = document.getElementById('user-name');
+              userNameElement.textContent = json.fullname.split(' ')[0] || fullName.split(' ')[0];
+              changeView('approved-view');
+            } catch (err) {
+              console.error(err);
+              showToast('Error de red al enviar la solicitud.');
+              changeView('form-view');
+            }
+          }
         
         window.onload = () => {
             calculateLoan();
