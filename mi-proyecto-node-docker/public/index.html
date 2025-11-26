@@ -10,49 +10,33 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        body { font-family: 'Inter', sans-serif; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        input[type=range]::-webkit-slider-thumb, input[type=range]::-moz-range-thumb {
+            width: 24px; height: 24px; background: #10B981; cursor: pointer; border-radius: 50%; border: 4px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.2);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            background: #10B981; /* emerald-500 */
-            cursor: pointer;
-            border-radius: 50%;
-            border: 4px solid white;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2);
-        }
-        input[type=range]::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            background: #10B981;
-            cursor: pointer;
-            border-radius: 50%;
-            border: 4px solid white;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2);
-        }
-        /* Estilos para el mensaje de notificación */
-        #toast {
-            transition: opacity 0.3s, transform 0.3s;
-        }
+        #toast { transition: opacity 0.3s, transform 0.3s; }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
-
     <div class="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-lg overflow-hidden relative">
         <!-- Contenedor de las Vistas -->
         <div id="app-container">
+            <!-- Header / Nav -->
+            <nav class="flex items-center justify-between p-4 border-b border-gray-100 bg-white">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-university text-2xl text-emerald-500"></i>
+                    <span class="font-bold text-gray-800">Préstamos</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="changeView('simulator-view')" class="text-sm text-gray-600 hover:text-gray-800">Simular</button>
+                    <button onclick="changeView('form-view')" class="text-sm text-gray-600 hover:text-gray-800">Solicitar</button>
+                    <button id="admin-btn" onclick="openAdminView()" class="px-3 py-1 bg-sky-500 text-white rounded">Admin</button>
+                </div>
+            </nav>
 
-            <!-- Vista 1: Bienvenida (sin cambios) -->
+            <!-- Vista 1: Bienvenida -->
             <div id="welcome-view" class="p-8 text-center fade-in">
                 <div class="mb-6">
                     <i class="fas fa-university text-5xl text-emerald-500"></i>
@@ -65,14 +49,12 @@
                 <p class="text-xs text-gray-400 mt-4">¿Ya eres cliente? <a href="#" class="text-emerald-500">Inicia Sesión</a></p>
             </div>
 
-            <!-- Vista 2: Simulador (Actualizada) -->
+            <!-- Vista 2: Simulador -->
             <div id="simulator-view" class="p-6 md:p-8 hidden fade-in">
                 <div class="flex items-center mb-6">
                     <button onclick="changeView('welcome-view')" class="text-gray-500 hover:text-gray-700"><i class="fas fa-arrow-left"></i></button>
                     <h2 class="text-2xl font-bold text-gray-800 text-center flex-grow">Simula y Compara</h2>
                 </div>
-                
-                <!-- Controles del Simulador -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label for="amount" class="block text-gray-700 text-sm font-bold mb-2">Monto a solicitar:</label>
@@ -86,7 +68,6 @@
                     </div>
                 </div>
 
-                <!-- Detalle del Préstamo (Actualizado para cumplir HU) -->
                 <div class="bg-emerald-50 p-4 rounded-lg text-center border border-emerald-200">
                     <p class="text-gray-600 text-sm">Cuota mensual estimada</p>
                     <p id="monthly-payment" class="text-3xl font-bold text-emerald-600">$48.486</p>
@@ -100,7 +81,7 @@
                             <p id="total-interest" class="font-semibold text-gray-800">$163.664</p>
                         </div>
                     </div>
-                     <p class="text-xs text-gray-500 mt-2">Tasa de interés referencial: 1.5% mensual</p>
+                    <p class="text-xs text-gray-500 mt-2">Tasa de interés referencial: 1.5% mensual</p>
                 </div>
 
                 <div class="flex items-center gap-4 mt-6">
@@ -111,42 +92,38 @@
                         ¡Lo quiero!
                     </button>
                 </div>
-                
-                <!-- NUEVA SECCIÓN: Comparador de Escenarios -->
+
                 <div id="comparison-container" class="mt-8 hidden">
                     <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">Mis Escenarios</h3>
-                    <div id="comparison-slots" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Las tarjetas de comparación se insertarán aquí -->
-                    </div>
+                    <div id="comparison-slots" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
-
             </div>
-            
-            <!-- Vistas 3, 4 y 5 (sin cambios) -->
+
+            <!-- Formulario -->
             <div id="form-view" class="p-8 hidden fade-in">
-                 <div class="flex items-center mb-6">
+                <div class="flex items-center mb-6">
                     <button onclick="changeView('simulator-view')" class="text-gray-500 hover:text-gray-700"><i class="fas fa-arrow-left"></i></button>
                     <h2 class="text-2xl font-bold text-gray-800 text-center flex-grow">Completa tus datos</h2>
                 </div>
                 <form id="loan-form">
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="fullname">Nombre Completo</label>
-                        <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="fullname" type="text" placeholder="Ej: Juan Pérez González">
+                        <label for="fullname" class="block text-gray-700 text-sm font-bold mb-2">Nombre Completo</label>
+                        <input id="fullname" type="text" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" placeholder="Ej: Juan Pérez González">
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="rut">RUT</label>
-                        <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="rut" type="text" placeholder="Ej: 12.345.678-9">
+                        <label for="rut" class="block text-gray-700 text-sm font-bold mb-2">RUT</label>
+                        <input id="rut" type="text" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" placeholder="Ej: 12.345.678-9">
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Correo Electrónico</label>
-                        <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="email" type="email" placeholder="juan.perez@email.com">
+                        <label for="email" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico</label>
+                        <input id="email" type="email" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" placeholder="juan.perez@email.com">
                     </div>
-                     <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="income">Ingreso Mensual Líquido</label>
-                        <input class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" id="income" type="number" placeholder="$800.000">
+                    <div class="mb-6">
+                        <label for="income" class="block text-gray-700 text-sm font-bold mb-2">Ingreso Mensual Líquido</label>
+                        <input id="income" type="number" class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-emerald-400" placeholder="$800.000">
                     </div>
-                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="documents">Documentos (DNI, comprobante)</label>
+                    <div class="mb-4">
+                        <label for="documents" class="block text-gray-700 text-sm font-bold mb-2">Documentos (DNI, comprobante)</label>
                         <input id="documents" type="file" multiple class="w-full" />
                         <p class="text-xs text-gray-400 mt-1">Puedes subir hasta 5 archivos.</p>
                     </div>
@@ -155,13 +132,16 @@
                     </button>
                 </form>
             </div>
+
+            <!-- Loading, approved, contract, signing, success, payments, admin -->
             <div id="loading-view" class="p-8 hidden fade-in text-center">
-                 <div class="flex flex-col items-center justify-center h-96">
+                <div class="flex flex-col items-center justify-center h-96">
                     <i class="fas fa-spinner fa-spin text-5xl text-emerald-500"></i>
                     <h2 class="text-2xl font-bold text-gray-800 mt-6">Evaluando tu solicitud...</h2>
                     <p class="text-gray-600 mt-2">Estamos consultando tu perfil de riesgo en segundos.</p>
                 </div>
             </div>
+
             <div id="approved-view" class="p-8 hidden fade-in text-center">
                 <div class="flex flex-col items-center justify-center h-96">
                     <div class="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6">
@@ -174,16 +154,15 @@
                     </button>
                 </div>
             </div>
+
             <div id="contract-view" class="p-8 hidden fade-in">
                 <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Firma de Contrato</h2>
-                
                 <div class="bg-gray-50 border border-gray-300 p-4 h-48 overflow-y-scroll rounded-lg mb-6 text-xs text-gray-600">
                     <p class="font-bold">CONTRATO DE PRÉSTAMO DE CONSUMO</p>
                     <p class="mt-2">En Santiago de Chile, a fecha actual, entre la Institución Financiera y <span id="contract-client-name" class="font-bold">Cliente</span>...</p>
                     <p class="mt-2">PRIMERO: El monto del crédito es de <span id="contract-amount"></span>...</p>
                     <p class="mt-2">SEGUNDO: El cliente se compromete a pagar...</p>
                     <p class="mt-2">TERCERO: Mediante firma digital avanzada...</p>
-                    <p class="mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                 </div>
 
                 <div class="mb-6">
@@ -220,14 +199,13 @@
                     </div>
                     <h2 class="text-3xl font-bold text-gray-800">¡Firma Exitosa!</h2>
                     <p class="text-gray-600 mt-4 mb-6 text-sm">El contrato y el pagaré han sido enviados a tu correo electrónico.</p>
-                    
                     <a href="#" class="text-emerald-600 font-bold underline mb-8 block">Descargar copia local (PDF)</a>
-
                     <button onclick="goToPaymentPortal()" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 shadow-lg">
                         Ir a Pagar Cuotas
                     </button>
                 </div>
             </div>
+
             <div id="payment-portal-view" class="p-6 hidden fade-in">
                 <div class="flex items-center mb-6">
                     <h2 class="text-2xl font-bold text-gray-800 flex-grow">Mis Pagos</h2>
@@ -237,177 +215,48 @@
                     </div>
                 </div>
 
-                <div class="bg-blue-50 p-4 rounded-lg mb-6 border border-blue-100">
-                    <p class="text-sm text-blue-800">Estado de cuenta al día. Paga tus cuotas a tiempo para mantener un buen historial.</p>
+                <!-- Notificaciones -->
+                <div class="mb-4">
+                    <h3 class="font-bold text-gray-700 mb-2">Notificaciones</h3>
+                    <div id="notifications-list" class="space-y-2 max-h-40 overflow-y-auto text-sm text-gray-700"></div>
+                    <div class="text-right mt-2">
+                        <button onclick="loadNotifications()" class="px-3 py-1 bg-gray-200 rounded text-xs">Actualizar</button>
+                    </div>
                 </div>
 
                 <h3 class="font-bold text-gray-700 mb-3">Cuotas Pendientes</h3>
-                <div id="installments-list" class="space-y-3 max-h-80 overflow-y-auto mb-6">
-                    <div class="animate-pulse flex space-x-4">
-                        <div class="flex-1 space-y-4 py-1">
-                            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                        </div>
-                    </div>
-                </div>
+                <div id="installments-list" class="space-y-3 max-h-80 overflow-y-auto mb-6"></div>
 
                 <button onclick="location.reload()" class="w-full text-gray-500 text-sm font-medium hover:text-gray-700">
                     Cerrar Sesión
                 </button>
             </div>
+
+            <!-- ADMIN VIEW -->
+            <div id="admin-view" class="hidden p-6">
+                <h2 class="text-2xl font-bold mb-4">Administración - Solicitudes</h2>
+                <div id="admin-list" class="space-y-3"></div>
+            </div>
         </div>
     </div>
-    
+
     <!-- Toast para notificaciones -->
     <div id="toast" class="fixed bottom-5 right-5 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transform translate-y-3">
         <p id="toast-message"></p>
     </div>
 
     <script>
-        const views = ['welcome-view', 'simulator-view', 'form-view', 'loading-view', 'approved-view', 'contract-view', 'signing-loader-view', 'success-final-view'];
-        views.push('payment-portal-view');
-        // 1. Agregar la nueva vista al array
-    // views = [..., 'success-final-view', 'payment-portal-view']; <--- Asegúrate de que esté aquí
-        views.push('payment-portal-view'); // O agrégalo manualmente al array 'views' al principio
+        // Vistas registradas
+        const views = [
+            'welcome-view', 'simulator-view', 'form-view', 'loading-view', 'approved-view',
+            'contract-view', 'signing-loader-view', 'success-final-view', 'admin-view', 'payment-portal-view'
+        ];
 
-        async function goToPaymentPortal() {
-            changeView('payment-portal-view');
-            loadInstallments();
-        }
+        // Variables globales
+        let currentApplicantId = null;
+        let authMethodSelected = null;
 
-        async function loadInstallments() {
-            const listContainer = document.getElementById('installments-list');
-            listContainer.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-emerald-500"></i> Cargando...</div>';
-
-            try {
-                const response = await fetch(`/installments/${currentApplicantId}`);
-                const installments = await response.json();
-
-                listContainer.innerHTML = '';
-
-                if (installments.length === 0) {
-                    listContainer.innerHTML = '<p class="text-center text-gray-500">No hay cuotas registradas.</p>';
-                    return;
-                }
-
-                // Mostrar fecha prox vencimiento (la primera pendiente)
-                const firstPending = installments.find(i => i.status === 'pending');
-                if (firstPending) {
-                    const date = new Date(firstPending.due_date);
-                    document.getElementById('next-due-date').textContent = date.toLocaleDateString();
-                } else {
-                    document.getElementById('next-due-date').textContent = 'Al día';
-                }
-
-                installments.forEach(inst => {
-                    const isPaid = inst.status === 'paid';
-                    const date = new Date(inst.due_date).toLocaleDateString();
-                    const amount = formatCurrency(inst.amount); // Usamos tu función existente
-
-                    const item = document.createElement('div');
-                    item.className = `p-4 rounded-lg border flex justify-between items-center ${isPaid ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-300 shadow-sm'}`;
-                    
-                    item.innerHTML = `
-                        <div>
-                            <p class="font-bold text-gray-800">Cuota ${inst.installment_number}</p>
-                            <p class="text-xs text-gray-500">Vence: ${date}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-bold text-gray-800 mb-1">${amount}</p>
-                            ${isPaid 
-                                ? '<span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full"><i class="fas fa-check"></i> Pagado</span>'
-                                : `<button onclick="payInstallment(${inst.id})" class="text-xs bg-emerald-500 text-white px-3 py-1.5 rounded hover:bg-emerald-600 transition">Pagar</button>`
-                            }
-                        </div>
-                    `;
-                    listContainer.appendChild(item);
-                });
-
-            } catch (error) {
-                console.error(error);
-                listContainer.innerHTML = '<p class="text-center text-red-500">Error al cargar pagos.</p>';
-            }
-        }
-
-        async function payInstallment(id) {
-            if(!confirm('¿Confirmar pago de esta cuota?')) return;
-
-            // Simulamos proceso de pago
-            showToast('Procesando pago con el banco...');
-            
-            try {
-                const response = await fetch('/pay-installment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ installmentId: id })
-                });
-                
-                const json = await response.json();
-
-                if (json.success) {
-                    showToast('¡Pago Exitoso! Comprobante enviado.');
-                    loadInstallments(); // Recargar la lista para ver el cambio de estado
-                } else {
-                    // Cumple criterio de aceptación de rechazo
-                    alert('Pago Rechazado: ' + json.message); 
-                }
-            } catch (error) {
-                console.error(error);
-                showToast('Error de conexión en el pago.');
-            }
-        }
-        function changeView(targetViewId) {
-            views.forEach(viewId => {
-                const viewElement = document.getElementById(viewId);
-                if (viewId === targetViewId) {
-                    viewElement.classList.remove('hidden');
-                    viewElement.classList.remove('fade-in');
-                    void viewElement.offsetWidth;
-                    viewElement.classList.add('fade-in');
-                } else {
-                    viewElement.classList.add('hidden');
-                }
-            });
-        }
-
-        const amountSlider = document.getElementById('amount');
-        const monthsSlider = document.getElementById('months');
-        const amountDisplay = document.getElementById('amount-display');
-        const monthsDisplay = document.getElementById('months-display');
-        const monthlyPaymentDisplay = document.getElementById('monthly-payment');
-        const totalPaymentDisplay = document.getElementById('total-payment');
-        const totalInterestDisplay = document.getElementById('total-interest');
-        const interestRate = 0.015;
-
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(value);
-        }
-
-        function calculateLoan() {
-            const principal = parseFloat(amountSlider.value);
-            const months = parseInt(monthsSlider.value);
-            
-            let monthlyPayment = principal / months;
-            if (interestRate > 0) {
-                 monthlyPayment = principal * (interestRate * Math.pow(1 + interestRate, months)) / (Math.pow(1 + interestRate, months) - 1);
-            }
-            
-            const totalPayment = monthlyPayment * months;
-            const totalInterest = totalPayment - principal;
-
-            amountDisplay.value = formatCurrency(principal);
-            monthsDisplay.value = `${months} meses`;
-            monthlyPaymentDisplay.textContent = formatCurrency(monthlyPayment);
-            totalPaymentDisplay.textContent = formatCurrency(totalPayment);
-            totalInterestDisplay.textContent = formatCurrency(totalInterest);
-        }
-
-        amountSlider.addEventListener('input', calculateLoan);
-        monthsSlider.addEventListener('input', calculateLoan);
-
-        // --- NUEVA LÓGICA PARA EL COMPARADOR ---
-        const comparisonContainer = document.getElementById('comparison-container');
-        const comparisonSlots = document.getElementById('comparison-slots');
-
+        // Helper: mostrar mensaje (toast)
         function showToast(message) {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
@@ -420,14 +269,67 @@
             }, 3000);
         }
 
+        // Cambiar vista (mostrar / ocultar)
+        function changeView(targetViewId) {
+            views.forEach(viewId => {
+                const viewElement = document.getElementById(viewId);
+                if (!viewElement) return;
+                if (viewId === targetViewId) {
+                    viewElement.classList.remove('hidden');
+                    viewElement.classList.remove('fade-in');
+                    void viewElement.offsetWidth;
+                    viewElement.classList.add('fade-in');
+                } else {
+                    viewElement.classList.add('hidden');
+                }
+            });
+        }
+
+        // Formato CLP
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0 }).format(value);
+        }
+
+        // Inicializar elementos del simulador
+        const amountSlider = document.getElementById('amount');
+        const monthsSlider = document.getElementById('months');
+        const amountDisplay = document.getElementById('amount-display');
+        const monthsDisplay = document.getElementById('months-display');
+        const monthlyPaymentDisplay = document.getElementById('monthly-payment');
+        const totalPaymentDisplay = document.getElementById('total-payment');
+        const totalInterestDisplay = document.getElementById('total-interest');
+        const interestRate = 0.015;
+
+        function calculateLoan() {
+            const principal = amountSlider ? parseFloat(amountSlider.value) : 1000000;
+            const months = monthsSlider ? parseInt(monthsSlider.value) : 24;
+            let monthlyPayment = principal / months;
+            if (interestRate > 0) {
+                monthlyPayment = principal * (interestRate * Math.pow(1 + interestRate, months)) / (Math.pow(1 + interestRate, months) - 1);
+            }
+            const totalPayment = monthlyPayment * months;
+            const totalInterest = totalPayment - principal;
+            amountDisplay.value = formatCurrency(principal);
+            monthsDisplay.value = `${months} meses`;
+            monthlyPaymentDisplay.textContent = formatCurrency(monthlyPayment);
+            totalPaymentDisplay.textContent = formatCurrency(totalPayment);
+            totalInterestDisplay.textContent = formatCurrency(totalInterest);
+        }
+
+        if (amountSlider) amountSlider.addEventListener('input', calculateLoan);
+        if (monthsSlider) monthsSlider.addEventListener('input', calculateLoan);
+
+        // Comparador
+        const comparisonContainer = document.getElementById('comparison-container');
+        const comparisonSlots = document.getElementById('comparison-slots');
+
         function addForComparison() {
+            if (!comparisonSlots) return;
             if (comparisonSlots.children.length >= 2) {
                 showToast('Puedes comparar un máximo de 2 escenarios.');
                 return;
             }
-
             comparisonContainer.classList.remove('hidden');
-
             const scenario = {
                 amount: amountDisplay.value,
                 months: monthsDisplay.value,
@@ -435,7 +337,6 @@
                 totalPayment: totalPaymentDisplay.textContent,
                 totalInterest: totalInterestDisplay.textContent
             };
-
             const card = document.createElement('div');
             card.className = 'bg-blue-50 p-4 rounded-lg border border-blue-200 relative animate-fade-in';
             card.innerHTML = `
@@ -453,44 +354,38 @@
             `;
             comparisonSlots.appendChild(card);
         }
-        
+
         function removeComparison(button) {
             button.parentElement.remove();
             if (comparisonSlots.children.length === 0) {
                 comparisonContainer.classList.add('hidden');
             }
-            // Re-numerar los escenarios restantes
             Array.from(comparisonSlots.children).forEach((card, index) => {
-                card.querySelector('h4').textContent = `Escenario ${index + 1}`;
+                const h4 = card.querySelector('h4');
+                if (h4) h4.textContent = `Escenario ${index + 1}`;
             });
         }
-        // --- FIN DE LA NUEVA LÓGICA ---
 
+        // Envío de formulario (multipart)
         async function submitApplication() {
-            // 1. Obtener valores del formulario
             const fullName = document.getElementById('fullname').value;
             const rut = document.getElementById('rut').value;
             const email = document.getElementById('email').value;
             const income = document.getElementById('income').value;
             const documentsInput = document.getElementById('documents');
-            const amount = document.getElementById('amount').value;
-            const months = document.getElementById('months').value;
+            const amount = document.getElementById('amount') ? document.getElementById('amount').value : 1000000;
+            const months = document.getElementById('months') ? document.getElementById('months').value : 24;
 
-            // 2. Validaciones
             if (!fullName.trim() || !rut.trim() || !email.trim() || !income) {
-              showToast('Por favor completa todos los campos obligatorios.');
-              return;
+                showToast('Por favor completa todos los campos obligatorios.');
+                return;
             }
-
-            if (documentsInput.files.length === 0) {
-              showToast('Por favor adjunta al menos un documento requerido.');
-              return;
+            if (!documentsInput || documentsInput.files.length === 0) {
+                showToast('Por favor adjunta al menos un documento requerido.');
+                return;
             }
-
-            // 3. Mostrar pantalla de carga
             changeView('loading-view');
-            
-            // 4. Preparar datos para enviar
+
             const formData = new FormData();
             formData.append('fullname', fullName);
             formData.append('rut', rut);
@@ -498,114 +393,268 @@
             formData.append('income', income);
             formData.append('amount', amount);
             formData.append('months', months);
-
-            Array.from(documentsInput.files).forEach((file) => {
-              formData.append('documents', file);
-            });
+            Array.from(documentsInput.files).forEach((file) => formData.append('documents', file));
 
             try {
-              const submitBtn = document.getElementById('submit-btn');
-              submitBtn.disabled = true; // Deshabilitar botón para evitar doble click
+                const submitBtn = document.getElementById('submit-btn');
+                if (submitBtn) submitBtn.disabled = true;
 
-              // 5. Enviar al backend
-              const resp = await fetch('/apply', {
-                method: 'POST',
-                body: formData
-              });
-              const json = await resp.json();
-              submitBtn.disabled = false;
+                const resp = await fetch('/apply', { method: 'POST', body: formData });
+                const json = await resp.json();
+                if (submitBtn) submitBtn.disabled = false;
 
-              if (!resp.ok) {
-                changeView('form-view');
-                showToast(json.message || 'No se pudo enviar la solicitud.');
-                return;
-              }
+                if (!resp.ok) {
+                    changeView('form-view');
+                    showToast(json.message || 'No se pudo enviar la solicitud.');
+                    return;
+                }
 
-              // --- ESTA ES LA PARTE QUE FALTABA ---
-              // Guardamos el ID que nos devuelve el servidor en la variable global
-              currentApplicantId = json.applicantId; 
-              // ------------------------------------
-
-              // Actualizamos nombre en la vista de éxito y cambiamos pantalla
-              const userNameElement = document.getElementById('user-name');
-              userNameElement.textContent = json.fullname.split(' ')[0] || fullName.split(' ')[0];
-              changeView('approved-view');
-
+                // Guardar id para acciones posteriores
+                currentApplicantId = json.applicantId || null;
+                const userNameElement = document.getElementById('user-name');
+                userNameElement.textContent = (json.fullname ? json.fullname.split(' ')[0] : (fullName.split(' ')[0] || 'Cliente'));
+                changeView('approved-view');
             } catch (err) {
-              console.error(err);
-              showToast('Error de red al enviar la solicitud.');
-              changeView('form-view');
+                console.error(err);
+                showToast('Error de red al enviar la solicitud.');
+                changeView('form-view');
             }
         }
-        
-        window.onload = () => {
-            calculateLoan();
-        };
 
-        let currentApplicantId = null;
-    let authMethodSelected = null;
-
-    // Función intermedia para preparar la vista del contrato
-    function goToContract() {
-        // Actualizar datos simulados en el contrato
-        document.getElementById('contract-client-name').textContent = document.getElementById('fullname').value;
-        document.getElementById('contract-amount').textContent = document.getElementById('amount-display').value;
-        changeView('contract-view');
-    }
-
-    function selectAuthMethod(method) {
-        authMethodSelected = method;
-        const btnBio = document.getElementById('btn-bio');
-        const btnClave = document.getElementById('btn-clave');
-        const signBtn = document.getElementById('sign-btn');
-
-        // Estilos visuales de selección
-        if (method === 'biometria') {
-            btnBio.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50');
-            btnClave.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
-        } else {
-            btnClave.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
-            btnBio.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50');
+        // Contrato / firma
+        function goToContract() {
+            const fullNameInput = document.getElementById('fullname');
+            const contractClientName = document.getElementById('contract-client-name');
+            const contractAmount = document.getElementById('contract-amount');
+            if (contractClientName && fullNameInput) contractClientName.textContent = fullNameInput.value || 'Cliente';
+            if (contractAmount && amountDisplay) contractAmount.textContent = amountDisplay.value || formatCurrency(1000000);
+            changeView('contract-view');
         }
 
-        // Habilitar botón de firma
-        signBtn.disabled = false;
-        signBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-        signBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-    }
+        function selectAuthMethod(method) {
+            authMethodSelected = method;
+            const btnBio = document.getElementById('btn-bio');
+            const btnClave = document.getElementById('btn-clave');
+            const signBtn = document.getElementById('sign-btn');
+            if (method === 'biometria') {
+                btnBio.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50');
+                btnClave.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-50');
+            } else {
+                btnClave.classList.add('ring-2', 'ring-blue-500', 'bg-blue-50');
+                btnBio.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-50');
+            }
+            if (signBtn) {
+                signBtn.disabled = false;
+                signBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                signBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }
+        }
 
-    async function processSignature() {
-        changeView('signing-loader-view');
-
-        // Simulamos espera del proveedor externo (TOC, Autentia, Clave Única)
-        setTimeout(async () => {
-            try {
-                // Usamos el ID que guardamos cuando se aprobó el crédito
-                // NOTA: Debes asegurarte de guardar el applicantId en submitApplication
-                
-                const response = await fetch('/sign', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ applicantId: currentApplicantId })
-                });
-
-                const json = await response.json();
-
-                if (json.success) {
-                    changeView('success-final-view');
-                } else {
-                    showToast('Error en la firma: ' + json.message);
+        async function processSignature() {
+            changeView('signing-loader-view');
+            setTimeout(async () => {
+                try {
+                    const response = await fetch('/sign', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ applicantId: currentApplicantId })
+                    });
+                    const json = await response.json();
+                    if (json && json.success) {
+                        changeView('success-final-view');
+                    } else {
+                        showToast('Error en la firma: ' + (json.message || 'invalido'));
+                        changeView('contract-view');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    showToast('Error de comunicación');
                     changeView('contract-view');
+                }
+            }, 3000);
+        }
+
+        // Pago de cuotas (simulado)
+        async function payInstallment(id) {
+            if (!confirm('¿Confirmar pago de esta cuota?')) return;
+            showToast('Procesando pago con el banco...');
+            try {
+                const response = await fetch('/pay-installment', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ installmentId: id })
+                });
+                const json = await response.json();
+                if (json && json.success) {
+                    showToast('¡Pago Exitoso! Comprobante enviado.');
+                    await loadInstallments();
+                } else {
+                    alert('Pago Rechazado: ' + (json.message || 'sin detalle'));
                 }
             } catch (error) {
                 console.error(error);
-                showToast('Error de comunicación');
-                changeView('contract-view');
+                showToast('Error de conexión en el pago.');
             }
-        }, 3000); // 3 segundos de simulación de biometría
-    }
+        }
 
-   
+        // Ir al portal de pagos
+        async function goToPaymentPortal() {
+            if (!currentApplicantId) {
+                showToast('Primero completa o selecciona una solicitud.');
+                return;
+            }
+            changeView('payment-portal-view');
+            await loadInstallments();
+        }
+
+        // Cargar cuotas (si existe endpoint)
+        async function loadInstallments() {
+            const listContainer = document.getElementById('installments-list');
+            if (!listContainer) return;
+            listContainer.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-emerald-500"></i> Cargando...</div>';
+            if (!currentApplicantId) {
+                listContainer.innerHTML = '<p class="text-center text-gray-500">Seleccione una solicitud para ver cuotas.</p>';
+                return;
+            }
+            try {
+                const response = await fetch(`/installments/${currentApplicantId}`);
+                if (!response.ok) {
+                    listContainer.innerHTML = '<p class="text-center text-red-500">No se pudieron obtener las cuotas.</p>';
+                    return;
+                }
+                const installments = await response.json();
+                listContainer.innerHTML = '';
+                if (!installments || installments.length === 0) {
+                    listContainer.innerHTML = '<p class="text-center text-gray-500">No hay cuotas registradas.</p>';
+                    return;
+                }
+                const firstPending = installments.find(i => i.status === 'pending');
+                if (firstPending) document.getElementById('next-due-date').textContent = new Date(firstPending.due_date).toLocaleDateString();
+                else document.getElementById('next-due-date').textContent = 'Al día';
+                installments.forEach(inst => {
+                    const isPaid = inst.status === 'paid';
+                    const date = new Date(inst.due_date).toLocaleDateString();
+                    const amount = formatCurrency(inst.amount);
+                    const item = document.createElement('div');
+                    item.className = `p-4 rounded-lg border flex justify-between items-center ${isPaid ? 'bg-gray-100 border-gray-200' : 'bg-white border-gray-300 shadow-sm'}`;
+                    item.innerHTML = `
+                        <div>
+                            <p class="font-bold text-gray-800">Cuota ${inst.installment_number}</p>
+                            <p class="text-xs text-gray-500">Vence: ${date}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-gray-800 mb-1">${amount}</p>
+                            ${isPaid ? '<span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full"><i class="fas fa-check"></i> Pagado</span>' : `<button onclick="payInstallment(${inst.id})" class="text-xs bg-emerald-500 text-white px-3 py-1.5 rounded hover:bg-emerald-600 transition">Pagar</button>`}
+                        </div>
+                    `;
+                    listContainer.appendChild(item);
+                });
+            } catch (error) {
+                console.error(error);
+                listContainer.innerHTML = '<p class="text-center text-red-500">Error al cargar pagos.</p>';
+            }
+        }
+
+        // ADMIN: listar solicitantes y desembolsar (simulado)
+        async function openAdminView() {
+            changeView('admin-view');
+            await loadApplicantsAdmin();
+        }
+
+        async function loadApplicantsAdmin() {
+            const listEl = document.getElementById('admin-list');
+            if (!listEl) return;
+            listEl.innerHTML = 'Cargando...';
+            try {
+                const resp = await fetch('/applicants');
+                if (!resp.ok) {
+                    listEl.innerHTML = '<p class="text-red-500">Error al cargar solicitudes.</p>';
+                    return;
+                }
+                const rows = await resp.json();
+                listEl.innerHTML = '';
+                if (!rows || rows.length === 0) {
+                    listEl.innerHTML = '<p>No hay solicitudes.</p>';
+                    return;
+                }
+                rows.forEach(r => {
+                    const div = document.createElement('div');
+                    div.className = 'p-3 border rounded flex justify-between items-center';
+                    div.innerHTML = `
+                        <div>
+                            <div class="font-semibold">${r.fullname} (${r.rut})</div>
+                            <div class="text-sm text-gray-500">Monto: ${formatCurrency(r.amount)} - Meses: ${r.months}</div>
+                            <div class="text-sm text-gray-500">Estado: ${r.status || 'pendiente'}${r.disbursed_at ? ' - Desembolsado: ' + new Date(r.disbursed_at).toLocaleString() : ''}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="px-3 py-1 bg-emerald-500 text-white rounded" ${r.status === 'disbursed' ? 'disabled' : ''} onclick="disburseApplicant(${r.id})">Aprobar y Desembolsar</button>
+                            <button class="px-3 py-1 bg-blue-500 text-white rounded" ${r.status === 'approved' ? 'disabled' : ''} onclick="approveApplicant(${r.id})">Aprobar</button>
+                            <button class="px-3 py-1 bg-red-400 text-white rounded" ${r.status === 'rejected' ? 'disabled' : ''} onclick="rejectApplicant(${r.id})">Rechazar</button>
+                            <button class="px-3 py-1 bg-gray-200 rounded" onclick="viewApplicant(${r.id})">Ver</button>
+                        </div>
+                    `;
+                    listEl.appendChild(div);
+                });
+            } catch (err) {
+                console.error(err);
+                listEl.innerHTML = '<p>Error cargando solicitudes</p>';
+            }
+        }
+
+        async function disburseApplicant(id) {
+            if (!confirm('Confirma iniciar desembolso y notificar al cliente?')) return;
+            try {
+                const resp = await fetch(`/applicants/${id}/disburse`, { method: 'POST' });
+                const json = await resp.json();
+                if (!resp.ok) {
+                    showToast(json.message || 'No se pudo realizar el desembolso.');
+                } else {
+                    showToast(json.message || 'Notificación enviada (simulada)');
+                    await loadApplicantsAdmin();
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error de red al intentar desembolsar.');
+            }
+        }
+
+        function viewApplicant(id) {
+            showToast('Ver detalle implementado si es necesario.');
+        }
+
+        async function loadNotifications() {
+            if (!currentApplicantId) {
+                document.getElementById('notifications-list').innerHTML = '<p class="text-gray-400 text-xs">Sin usuario seleccionado.</p>';
+                return;
+            }
+            try {
+                const resp = await fetch(`/applicants/${currentApplicantId}/notifications`);
+                if (!resp.ok) {
+                    showToast('No se pudieron cargar las notificaciones.');
+                    return;
+                }
+                const notes = await resp.json();
+                const list = document.getElementById('notifications-list');
+                list.innerHTML = '';
+                if (!notes || notes.length === 0) {
+                    list.innerHTML = '<p class="text-gray-400 text-xs">No hay notificaciones.</p>';
+                    return;
+                }
+                notes.forEach(n => {
+                    const el = document.createElement('div');
+                    el.className = 'p-2 border rounded bg-gray-50 text-xs';
+                    el.innerHTML = `<div class="font-semibold text-gray-800">${n.type}</div><div class="text-gray-600">${n.message}</div><div class="text-gray-400 text-xs mt-1">${new Date(n.created_at).toLocaleString()}</div>`;
+                    list.appendChild(el);
+                });
+            } catch (err) {
+                console.error(err);
+                showToast('Error al cargar notificaciones.');
+            }
+        }
+
+        // Init on load
+        window.addEventListener('DOMContentLoaded', () => {
+            calculateLoan();
+            changeView('welcome-view'); // inicial
+        });
     </script>
 </body>
 </html>
