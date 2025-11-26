@@ -32,6 +32,17 @@ async function initializeDb() {
       content BYTEA
     );
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS installments (
+      id SERIAL PRIMARY KEY,
+      applicant_id INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
+      installment_number INTEGER,
+      amount INTEGER,
+      due_date DATE,
+      status TEXT DEFAULT 'pending' -- 'pending', 'paid'
+    );
+  `);
 }
 initializeDb().catch(err => console.error('DB init error:', err));
 
@@ -56,6 +67,89 @@ app.get('/messages', async (req, res) => {
     console.error(err);
     res.status(500).send('Error');
   }
+});
+//Ruta para procesar la firma digital
+// MODIFICA TU RUTA /sign EXISTENTE ASÍ:
+app.post('/sign', express.json(), async (req, res) => {
+  try {
+    const { applicantId } = req.body;
+    if (!applicantId) return res.status(400).json({ success: false, message: 'ID requerido' });
+
+    // 1. Obtener datos del préstamo para calcular cuotas
+    const applicantRes = await pool.query('SELECT * FROM applicants WHERE id = $1', [applicantId]);
+    const applicant = applicantRes.rows[0];
+
+    if (!applicant) return res.status(404).json({ success: false, message: 'Solicitante no encontrado' });
+
+    // 2. Calcular valor cuota simple (Mismo cálculo que usaste antes)
+    const amount = parseFloat(applicant.amount);
+    const months = parseInt(applicant.months);
+    const interestRate = 0.015;
+    let monthlyPayment = amount / months;
+    if (interestRate > 0) {
+      monthlyPayment = amount * (interestRate * Math.pow(1 + interestRate, months)) / (Math.pow(1 + interestRate, months) - 1);
+    }
+    monthlyPayment = Math.round(monthlyPayment);
+
+    // 3. Insertar las cuotas en la base de datos
+    // (Solo si no existen ya, para evitar duplicados si firma dos veces)
+    const checkInstallments = await pool.query('SELECT count(*) FROM installments WHERE applicant_id = $1', [applicantId]);
+    if (parseInt(checkInstallments.rows[0].count) === 0) {
+        for (let i = 1; i <= months; i++) {
+            const dueDate = new Date();
+            dueDate.setMonth(dueDate.getMonth() + i); // Vencimiento en 1 mes, 2 meses, etc.
+            
+            await pool.query(
+                `INSERT INTO installments (applicant_id, installment_number, amount, due_date, status) VALUES ($1, $2, $3, $4, $5)`,
+                [applicantId, i, monthlyPayment, dueDate, 'pending']
+            );
+        }
+    }
+
+    // 4. Actualizar estado a 'signed'
+    await pool.query(`UPDATE applicants SET status = 'signed' WHERE id = $1`, [applicantId]);
+
+    return res.json({ success: true, message: 'Firmado y cuotas generadas' });
+  } catch (err) {
+    console.error('Sign error:', err);
+    return res.status(500).json({ success: false, message: 'Error al firmar' });
+  }
+});
+
+// --- NUEVAS RUTAS PARA EL PAGO ---
+
+// Obtener las cuotas de un cliente
+app.get('/installments/:applicantId', async (req, res) => {
+    try {
+        const { applicantId } = req.params;
+        const result = await pool.query('SELECT * FROM installments WHERE applicant_id = $1 ORDER BY installment_number ASC', [applicantId]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al obtener cuotas');
+    }
+});
+
+// Pagar una cuota
+app.post('/pay-installment', express.json(), async (req, res) => {
+    try {
+        const { installmentId } = req.body;
+        
+        // SIMULACIÓN DE VALIDACIÓN (Criterio de aceptación: Rechazo)
+        // Simulamos que falla el 10% de las veces aleatoriamente
+        const simularFallo = Math.random() < 0.1; 
+        if (simularFallo) {
+            return res.status(400).json({ success: false, message: 'Transacción rechazada: Fondos insuficientes en el medio de pago.' });
+        }
+
+        // Procesar pago exitoso
+        await pool.query("UPDATE installments SET status = 'paid' WHERE id = $1", [installmentId]);
+        
+        res.json({ success: true, message: 'Pago exitoso. Comprobante #TX-998877' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: 'Error del servidor' });
+    }
 });
 
 // Endpoint para recibir solicitud + documentos
