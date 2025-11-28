@@ -4,23 +4,22 @@ const pool = require('./db');
 const app = express();
 const port = 3000;
 
-const upload = multer(); // memoria
+const upload = multer(); // Almacenamiento en memoria para simplificar
 app.use(express.static('public'));
-app.use(express.json()); // para endpoints json
+app.use(express.json());
 
-// Inicializar tablas y nuevas columnas
+// --- INICIALIZACIÓN DE LA BASE DE DATOS ---
 async function initializeDb() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS applicants (
       id SERIAL PRIMARY KEY,
       fullname TEXT NOT NULL,
-      rut TEXT NOT NULL,
+      rut TEXT NOT NULL UNIQUE,
       email TEXT NOT NULL,
       income NUMERIC,
       amount NUMERIC,
       months INTEGER,
-      status TEXT,
-      bank_account TEXT,
+      status TEXT DEFAULT 'submitted', -- submitted, approved, rejected, signed, disbursed, closed
       disbursed_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT NOW()
     );
@@ -40,7 +39,7 @@ async function initializeDb() {
       applicant_id INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
       type TEXT,
       message TEXT,
-      meta JSONB,
+      read BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT NOW()
     );
   `);
@@ -51,182 +50,225 @@ async function initializeDb() {
       installment_number INTEGER,
       amount NUMERIC,
       due_date DATE,
-      status TEXT DEFAULT 'pending',
-      reminder_sent BOOLEAN DEFAULT FALSE
+      status TEXT DEFAULT 'pending', -- pending, paid
+      created_at TIMESTAMP DEFAULT NOW()
     );
   `);
+  console.log("Base de datos inicializada/verificada.");
 }
-initializeDb().catch(err => console.error('DB init error:', err));
+initializeDb().catch(err => console.error('Error DB init:', err));
 
-// Helper to insert notification
-async function insertNotification(applicantId, type, message, meta = {}) {
-  await pool.query(
-    `INSERT INTO notifications (applicant_id, type, message, meta) VALUES ($1,$2,$3,$4)`,
-    [applicantId, type, message, meta]
-  );
-  console.log(`Notificación (${type}) para applicant ${applicantId}: ${message}`);
-}
-
-// /apply: guarda applicant, documents y genera cuotas
-app.post('/apply', upload.array('documents', 5), async (req, res) => {
+// --- HELPER: NOTIFICACIONES (HU-06) ---
+async function notify(applicantId, type, message) {
   try {
-    const { fullname, rut, email, income, amount, months } = req.body;
-    if (!fullname || !rut || !email || !income || !amount || !months) {
-      return res.status(400).json({ success: false, message: 'Faltan campos obligatorios.' });
-    }
-    const incomeNum = parseFloat(income), amountNum = parseFloat(amount), monthsNum = parseInt(months, 10);
-    const insertApplicant = await pool.query(
-      `INSERT INTO applicants (fullname, rut, email, income, amount, months, status) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-      [fullname, rut, email, incomeNum, amountNum, monthsNum, 'submitted']
+    await pool.query(
+      `INSERT INTO notifications (applicant_id, type, message) VALUES ($1, $2, $3)`,
+      [applicantId, type, message]
     );
-    const applicantId = insertApplicant.rows[0].id;
+    console.log(`[NOTIFICACIÓN EMAIL SIMULADA] Para ID ${applicantId}: ${message}`);
+  } catch (e) {
+    console.error("Error creando notificación", e);
+  }
+}
+
+// --- ENDPOINTS ---
+
+// LOGIN (Nueva funcionalidad de estructura)
+app.post('/login', async (req, res) => {
+  const { rut } = req.body;
+  try {
+    const result = await pool.query('SELECT * FROM applicants WHERE rut = $1', [rut]);
+    if (result.rows.length > 0) {
+      return res.json({ success: true, user: result.rows[0] });
+    } else {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// HU-02: Completar Solicitud
+app.post('/apply', upload.array('documents', 5), async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { fullname, rut, email, income, amount, months } = req.body;
+
+    // Validación básica backend
+    if (!fullname || !rut || !email || !amount) {
+      throw new Error('Datos incompletos');
+    }
+
+    // Verificar si ya existe
+    const check = await client.query('SELECT id FROM applicants WHERE rut = $1', [rut]);
+    if (check.rows.length > 0) {
+      throw new Error('Ya existe una solicitud con este RUT');
+    }
+
+    const insertRes = await client.query(
+      `INSERT INTO applicants (fullname, rut, email, income, amount, months, status) 
+       VALUES ($1, $2, $3, $4, $5, $6, 'submitted') RETURNING id`,
+      [fullname, rut, email, parseFloat(income), parseFloat(amount), parseInt(months)]
+    );
+    const applicantId = insertRes.rows[0].id;
+
     // Guardar documentos
-    const files = req.files || [];
-    for (const file of files) {
-      await pool.query(
-        `INSERT INTO documents (applicant_id, filename, mimetype, content) VALUES ($1,$2,$3,$4)`,
-        [applicantId, file.originalname, file.mimetype, file.buffer]
-      );
+    if (req.files) {
+      for (const file of req.files) {
+        await client.query(
+          `INSERT INTO documents (applicant_id, filename, mimetype, content) VALUES ($1, $2, $3, $4)`,
+          [applicantId, file.originalname, file.mimetype, file.buffer]
+        );
+      }
     }
-    // Generar cuotas mensuales aproximadas
-    const interestRate = 0.015;
-    let monthlyPayment = amountNum / monthsNum;
-    if (interestRate > 0) {
-      monthlyPayment = amountNum * (interestRate * Math.pow(1 + interestRate, monthsNum)) / (Math.pow(1 + interestRate, monthsNum) - 1);
-    }
-    // Inserta cuotas con fechas mensuales desde hoy (+1 mes)
+
+    // Generar cuotas (HU-01 -> HU-04 preparación)
+    const principal = parseFloat(amount);
+    const period = parseInt(months);
+    const rate = 0.015; // 1.5% mensual fijo para el ejemplo
+    let monthlyPayment = principal * (rate * Math.pow(1 + rate, period)) / (Math.pow(1 + rate, period) - 1);
+    monthlyPayment = Math.round(monthlyPayment);
+
     const now = new Date();
-    for (let i = 1; i <= monthsNum; i++) {
+    for (let i = 1; i <= period; i++) {
       const dueDate = new Date(now);
       dueDate.setMonth(dueDate.getMonth() + i);
-      await pool.query(
-        `INSERT INTO installments (applicant_id, installment_number, amount, due_date, status) VALUES ($1,$2,$3,$4,$5)`,
-        [applicantId, i, Math.round(monthlyPayment), dueDate.toISOString().split('T')[0], 'pending']
+      await client.query(
+        `INSERT INTO installments (applicant_id, installment_number, amount, due_date) VALUES ($1, $2, $3, $4)`,
+        [applicantId, i, monthlyPayment, dueDate]
       );
     }
-    // Notificación inicial: solicitud recibida
-    await insertNotification(applicantId, 'application', 'Solicitud recibida y en evaluación', { status: 'submitted' });
 
-    return res.json({ success: true, applicantId, fullname });
-  } catch (err) {
-    console.error('Apply error:', err);
-    return res.status(500).json({ success: false, message: 'Error interno' });
-  }
-});
+    await client.query('COMMIT');
+    
+    // HU-06 Notificación
+    notify(applicantId, 'Estado Solicitud', 'Su solicitud ha sido recibida y está en evaluación.');
 
-// Endpoint para aprobar una solicitud (simulado)
-app.post('/applicants/:id/approve', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const r = await pool.query(`SELECT * FROM applicants WHERE id = $1`, [id]);
-    if (!r.rows.length) return res.status(404).json({ message: 'Solicitante no encontrado' });
-    await pool.query(`UPDATE applicants SET status = $1 WHERE id = $2`, ['approved', id]);
-    await insertNotification(id, 'status', 'Solicitud aprobada', { newStatus: 'approved' });
-    return res.json({ success: true, message: 'Solicitud aprobada, correo enviado (simulado)' });
+    res.json({ success: true, applicantId, fullname });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error(err);
-    return res.status(500).json({ success: false });
+    res.status(400).json({ success: false, message: err.message });
+  } finally {
+    client.release();
   }
 });
 
-// Endpoint para rechazar una solicitud (simulado)
-app.post('/applicants/:id/reject', async (req, res) => {
+// HU-03: Firma Digital
+app.post('/sign', async (req, res) => {
+  const { applicantId } = req.body;
+  try {
+    const appRes = await pool.query('SELECT status FROM applicants WHERE id = $1', [applicantId]);
+    if (appRes.rows[0].status !== 'approved') {
+      return res.status(400).json({ success: false, message: 'La solicitud no está aprobada para firma.' });
+    }
+
+    await pool.query("UPDATE applicants SET status = 'signed' WHERE id = $1", [applicantId]);
+    
+    // HU-06 Notificación
+    notify(applicantId, 'Contrato Firmado', 'Has firmado exitosamente. Esperando desembolso.');
+    
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// HU-04: Pagar Cuota
+app.post('/pay-installment', async (req, res) => {
+  const { installmentId } = req.body;
+  try {
+    // Verificar estado
+    const instRes = await pool.query('SELECT * FROM installments WHERE id = $1', [installmentId]);
+    if (!instRes.rows.length) return res.status(404).json({ success: false, message: 'Cuota no encontrada' });
+    if (instRes.rows[0].status === 'paid') return res.status(400).json({ success: false, message: 'Ya pagada' });
+
+    // Procesar pago
+    await pool.query("UPDATE installments SET status = 'paid' WHERE id = $1", [installmentId]);
+    const applicantId = instRes.rows[0].applicant_id;
+
+    // HU-06 Notificación Pago Exitoso
+    notify(applicantId, 'Pago Recibido', `Se ha confirmado el pago de la cuota #${instRes.rows[0].installment_number}.`);
+
+    // Verificar si terminó de pagar todo el crédito
+    const pending = await pool.query("SELECT COUNT(*) FROM installments WHERE applicant_id = $1 AND status = 'pending'", [applicantId]);
+    if (parseInt(pending.rows[0].count) === 0) {
+      await pool.query("UPDATE applicants SET status = 'closed' WHERE id = $1", [applicantId]);
+      notify(applicantId, 'Crédito Finalizado', '¡Felicidades! Has pagado la totalidad de tu préstamo.');
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// HU-05: Desembolso (Endpoint Admin)
+app.post('/admin/disburse', async (req, res) => {
+  const { applicantId } = req.body;
+  try {
+    const appRes = await pool.query('SELECT status FROM applicants WHERE id = $1', [applicantId]);
+    if (appRes.rows[0].status !== 'signed') {
+      return res.status(400).json({ success: false, message: 'El cliente debe firmar antes de desembolsar.' });
+    }
+
+    await pool.query("UPDATE applicants SET status = 'disbursed', disbursed_at = NOW() WHERE id = $1", [applicantId]);
+    
+    // HU-06 Notificación Desembolso
+    notify(applicantId, 'Fondos Depositados', 'El dinero ha sido transferido a tu cuenta bancaria.');
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Admin: Aprobar/Rechazar (Para habilitar el flujo de firma)
+app.post('/admin/status', async (req, res) => {
+  const { applicantId, status } = req.body; // status: 'approved' o 'rejected'
+  try {
+    await pool.query("UPDATE applicants SET status = $1 WHERE id = $2", [status, applicantId]);
+    
+    // HU-06 Notificación Cambio Estado
+    notify(applicantId, 'Actualización de Solicitud', `Tu solicitud ha sido: ${status === 'approved' ? 'APROBADA' : 'RECHAZADA'}.`);
+    
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Obtener datos del usuario (refresh)
+app.get('/applicant/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const r = await pool.query(`SELECT * FROM applicants WHERE id = $1`, [id]);
-    if (!r.rows.length) return res.status(404).json({ message: 'Solicitante no encontrado' });
-    await pool.query(`UPDATE applicants SET status = $1 WHERE id = $2`, ['rejected', id]);
-    await insertNotification(id, 'status', 'Solicitud rechazada', { newStatus: 'rejected' });
-    return res.json({ success: true, message: 'Solicitud rechazada, correo enviado (simulado)' });
+    const user = await pool.query('SELECT * FROM applicants WHERE id = $1', [id]);
+    const installments = await pool.query('SELECT * FROM installments WHERE applicant_id = $1 ORDER BY installment_number ASC', [id]);
+    const notifications = await pool.query('SELECT * FROM notifications WHERE applicant_id = $1 ORDER BY created_at DESC', [id]);
+    
+    if (user.rows.length === 0) return res.status(404).json({ success: false });
+
+    res.json({
+      user: user.rows[0],
+      installments: installments.rows,
+      notifications: notifications.rows
+    });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Desembolso: ahora sólo si estado es approved
-app.post('/applicants/:id/disburse', async (req, res) => {
+// Admin: Listar todos
+app.get('/admin/applicants', async (req, res) => {
   try {
-    const { id } = req.params;
-    const applicantRes = await pool.query('SELECT * FROM applicants WHERE id = $1', [id]);
-    if (applicantRes.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Solicitante no encontrado' });
-    }
-    const applicant = applicantRes.rows[0];
-    if (applicant.status !== 'approved') {
-      return res.status(400).json({ success: false, message: 'Solo se puede desembolsar solicitudes aprobadas.' });
-    }
-    const transactionId = `TRX-${Date.now()}`;
-    await pool.query(`UPDATE applicants SET status = $1, disbursed_at = NOW() WHERE id = $2`, ['disbursed', id]);
-
-    const notificationMsg = `Correo enviado: fondos depositados (tx: ${transactionId})`;
-    await insertNotification(id, 'disburse', notificationMsg, { transactionId });
-
-    return res.json({ success: true, transactionId, message: 'Correo enviado' });
+    const result = await pool.query('SELECT * FROM applicants ORDER BY created_at DESC');
+    res.json(result.rows);
   } catch (err) {
-    console.error('Disburse error:', err);
-    return res.status(500).json({ success: false, message: 'Error interno en el desembolso' });
+    res.status(500).json({ error: err.message });
   }
 });
-
-// Endpoint para pagar una cuota y notificar (simulado)
-app.post('/installments/:id/pay', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const instRes = await pool.query(`SELECT * FROM installments WHERE id = $1`, [id]);
-    if (instRes.rows.length === 0) return res.status(404).json({ message: 'Cuota no encontrada' });
-    const inst = instRes.rows[0];
-    if (inst.status === 'paid') return res.status(400).json({ message: 'Cuota ya pagada' });
-
-    await pool.query(`UPDATE installments SET status = 'paid' WHERE id = $1`, [id]);
-    await insertNotification(inst.applicant_id, 'payment', `Pago confirmado de cuota ${inst.installment_number}`, { installmentId: id });
-
-    // Si todas las cuotas están pagadas: cerrar préstamo y notificar
-    const remaining = await pool.query(`SELECT count(*) FROM installments WHERE applicant_id = $1 AND status != 'paid'`, [inst.applicant_id]);
-    if (parseInt(remaining.rows[0].count, 10) === 0) {
-      await pool.query(`UPDATE applicants SET status = 'closed' WHERE id = $1`, [inst.applicant_id]);
-      await insertNotification(inst.applicant_id, 'closure', 'Préstamo pagado en su totalidad. Cuenta cerrada.', {});
-    }
-    return res.json({ success: true, message: 'Pago procesado y correo de confirmación enviado (simulado)' });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Error interno' });
-  }
-});
-
-// Notificaciones: obtener por applicantId
-app.get('/applicants/:id/notifications', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query(
-      `SELECT id, type, message, meta, created_at FROM notifications WHERE applicant_id = $1 ORDER BY created_at DESC`,
-      [id]
-    );
-    return res.json(result.rows);
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: 'Error interno' });
-  }
-});
-
-// Scheduler: buscar cuotas con due_date en 7 días y reminder_sent=false
-setInterval(async () => {
-  try {
-    const result = await pool.query(`
-      SELECT id, applicant_id, installment_number, due_date 
-      FROM installments 
-      WHERE reminder_sent = false AND status = 'pending' AND due_date BETWEEN NOW()::date AND (NOW()::date + INTERVAL '7 days')
-    `);
-    for (const row of result.rows) {
-      const msg = `Recordatorio: cuota ${row.installment_number} vence el ${row.due_date}. Por favor realiza el pago a tiempo.`;
-      await insertNotification(row.applicant_id, 'reminder', msg, { installmentNumber: row.installment_number, due_date: row.due_date });
-      await pool.query(`UPDATE installments SET reminder_sent = TRUE WHERE id = $1`, [row.id]);
-    }
-  } catch (err) {
-    console.error('Scheduler error:', err);
-  }
-}, 60 * 1000); // cada 60s (modo dev). Ajustar a hourly en prod.
 
 app.listen(port, () => {
-  console.log(`App corriendo en http://localhost:${port}`);
+  console.log(`Servidor corriendo en http://localhost:${port}`);
 });
