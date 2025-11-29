@@ -69,7 +69,7 @@ Puede acceder a la Wiki mediante el siguiente [enlace](https://github.com/atoro1
 
 * [Video presentación cliente](https://www.youtube.com)
 * [Video presentación avance 1](https://youtu.be/J6jgxYB2WD4)
-* Etc ...
+* [Video presentación avance 1](https://youtu.be/FNwrfbmLTPs)
 
 ## Aspectos técnicos relevantes
 
