@@ -1,6 +1,6 @@
-# Grupo 10
+# Grupo 1
 
-Este es el repositorio del Grupo 10, cuyos integrantes son:
+Este es el repositorio del Grupo 1, cuyos integrantes son:
 
 * Alexander Toro Astudillo - 202304647-7
 * Bárbara Camilo González - 202304567-5
