@@ -6,8 +6,9 @@ Este es el repositorio del Grupo 1, cuyos integrantes son:
 * Bárbara Camilo González - 202304567-5
 * Manuel Vega Lopez - 202304644-2
 * Benjamín Torres Hormazábal - 202373539-6
-* **Ayudante**: Felipe Fernández
-* **Profesora**: Luz Chourio
+* Sebastián Santander - 202304644-2
+* **Ayudante**: Benjamín Daza
+* **Profesora**: Ricardo Salas
 
 ## Requisitos Previos
 
