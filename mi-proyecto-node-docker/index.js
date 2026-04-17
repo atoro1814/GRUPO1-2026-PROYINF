@@ -20,6 +20,7 @@ async function initializeDb() {
       amount NUMERIC,
       months INTEGER,
       status TEXT DEFAULT 'submitted', -- submitted, approved, rejected, signed, disbursed, closed
+      ocr_confidence JSON,
       disbursed_at TIMESTAMP,
       created_at TIMESTAMP DEFAULT NOW()
     );
@@ -93,7 +94,7 @@ app.post('/apply', upload.array('documents', 5), async (req, res) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const { fullname, rut, email, income, amount, months } = req.body;
+    const { fullname, rut, email, income, amount, months, ocrData } = req.body;
 
     // Validación básica backend
     if (!fullname || !rut || !email || !amount) {
@@ -107,9 +108,9 @@ app.post('/apply', upload.array('documents', 5), async (req, res) => {
     }
 
     const insertRes = await client.query(
-      `INSERT INTO applicants (fullname, rut, email, income, amount, months, status) 
-       VALUES ($1, $2, $3, $4, $5, $6, 'submitted') RETURNING id`,
-      [fullname, rut, email, parseFloat(income), parseFloat(amount), parseInt(months)]
+      `INSERT INTO applicants (fullname, rut, email, income, amount, months, status, ocr_confidence) 
+       VALUES ($1, $2, $3, $4, $5, $6, 'submitted', $7) RETURNING id`,
+      [fullname, rut, email, parseFloat(income), parseFloat(amount), parseInt(months), ocrData || '{}']
     );
     const applicantId = insertRes.rows[0].id;
 
@@ -266,6 +267,36 @@ app.get('/admin/applicants', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+// HU-07: Endpoint para Procesamiento OCR
+app.post('/api/ocr', upload.fields([{ name: 'front', maxCount: 1 }, { name: 'back', maxCount: 1 }]), async (req, res) => {
+  try {
+    const { front, back } = req.files;
+    
+    if (!front || !back) {
+      return res.status(400).json({ success: false, message: 'Faltan imágenes de la cédula' });
+    }
+
+    // Aquí llamarías a la API externa (ej. Google Vision API). 
+    // Simulamos un retraso de procesamiento de 2 segundos.
+    setTimeout(() => {
+      // T4: Mapear datos con nivel de confianza (1.0 es 100% seguro)
+      const mockOcrResponse = {
+        success: true,
+        data: {
+          fullname: { value: "JUAN PEREZ SOTO", confidence: 0.98 },
+          rut: { value: "11111111-1", confidence: 0.99 },
+          // Simulamos que la dirección no se leyó bien
+          address: { value: "AV SIEMPRE VIVA 742", confidence: 0.65 } 
+        }
+      };
+      res.json(mockOcrResponse);
+    }, 2000);
+
+  } catch (error) {
+    console.error("Error en OCR:", error);
+    res.status(500).json({ success: false, message: 'Error procesando los documentos' });
   }
 });
 

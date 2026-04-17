@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -191,8 +191,56 @@
         class="hidden fade-in bg-white p-6 rounded-lg shadow-lg"
       >
         <h2 class="text-xl font-bold text-gray-800 mb-4">
-          Completar Solicitud 
+          Completar Solicitud
         </h2>
+        <div
+          class="mb-6 p-5 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm"
+        >
+          <h3 class="font-bold text-emerald-800 mb-2">
+            <i class="fas fa-id-card"></i> Carga Rápida con Cédula
+          </h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Sube tu cédula (imágenes o PDF) para autocompletar tus datos y
+            agilizar el proceso.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold mb-1 text-gray-700"
+                >Anverso (Frente)</label
+              >
+              <input
+                type="file"
+                id="ci-front"
+                accept="image/*,application/pdf"
+                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-white file:text-emerald-700 border rounded"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold mb-1 text-gray-700"
+                >Reverso (Atrás)</label
+              >
+              <input
+                type="file"
+                id="ci-back"
+                accept="image/*,application/pdf"
+                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-white file:text-emerald-700 border rounded"
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onclick="processOCR()"
+            id="btn-ocr"
+            class="mt-4 bg-emerald-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-emerald-700 transition flex items-center gap-2"
+          >
+            <i class="fas fa-magic"></i> Extraer Datos Automáticamente
+          </button>
+          <p id="ocr-status" class="text-xs text-emerald-600 mt-2 hidden">
+            Procesando imagen, por favor espera...
+          </p>
+        </div>
         <form id="loan-form" onsubmit="submitApplication(event)">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
@@ -200,6 +248,7 @@
                 >Nombre Completo</label
               >
               <input
+                id="form-fullname"
                 type="text"
                 name="fullname"
                 required
@@ -210,12 +259,31 @@
               <label class="block text-sm font-bold mb-1">RUT</label>
               <input
                 type="text"
+                id="form-rut"
                 name="rut"
                 required
                 placeholder="12345678-9"
                 class="w-full border p-2 rounded"
               />
+              <input
+                type="hidden"
+                id="form-ocr-data"
+                name="ocrData"
+                value="{}"
+              />
             </div>
+            <div>
+              <label class="block text-sm font-bold mb-1">Dirección</label>
+              <input
+                type="text"
+                id="form-address"
+                name="address"
+                required
+                placeholder="Ej: Av. Siempre Viva 742"
+                class="w-full border p-2 rounded transition-all duration-300"
+              />
+            </div>
+
             <div>
               <label class="block text-sm font-bold mb-1"
                 >Correo Electrónico</label
@@ -317,7 +385,7 @@
               class="hidden border rounded p-6 bg-blue-50 border-blue-200"
             >
               <h3 class="font-bold text-blue-900 text-lg mb-2">
-                <i class="fas fa-file-contract"></i> Firma de Contrato 
+                <i class="fas fa-file-contract"></i> Firma de Contrato
               </h3>
               <p class="text-sm text-blue-800 mb-4">
                 Tu crédito fue aprobado. Para continuar, debes firmar el
@@ -353,7 +421,7 @@
               class="hidden p-4 bg-purple-50 border border-purple-200 rounded text-purple-800"
             >
               <i class="fas fa-university text-2xl mb-2"></i>
-              <h3 class="font-bold">Esperando Desembolso </h3>
+              <h3 class="font-bold">Esperando Desembolso</h3>
               <p class="text-sm">
                 Contrato firmado. Estamos procesando la transferencia a tu
                 cuenta.
@@ -363,7 +431,7 @@
             <div id="panel-payment" class="hidden">
               <h3 class="font-bold text-gray-800 mb-3">
                 <i class="fas fa-money-bill-wave text-emerald-600"></i> Tabla de
-                Pagos 
+                Pagos
               </h3>
               <div class="overflow-hidden border rounded-lg">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -512,7 +580,7 @@
 
         const scenario = calculateScenario(
           parseInt(simAmount.value),
-          parseInt(simMonths.value)
+          parseInt(simMonths.value),
         );
         comparisonScenarios.push(scenario);
         renderComparison();
@@ -691,7 +759,7 @@
       async function signContract() {
         if (
           !confirm(
-            "¿Confirmas que has leído el contrato y deseas firmar con tu Clave Única?"
+            "¿Confirmas que has leído el contrato y deseas firmar con tu Clave Única?",
           )
         )
           return;
@@ -721,10 +789,10 @@
                       inst.installment_number
                     }</td>
                     <td class="px-4 py-2 text-sm text-gray-500">${new Date(
-                      inst.due_date
+                      inst.due_date,
                     ).toLocaleDateString()}</td>
                     <td class="px-4 py-2 text-sm font-bold text-gray-700">$${parseInt(
-                      inst.amount
+                      inst.amount,
                     ).toLocaleString()}</td>
                     <td class="px-4 py-2 text-center">
                         ${
@@ -801,6 +869,105 @@
           body: JSON.stringify({ applicantId: id }),
         });
         showAdmin();
+      }
+
+      // --- HU-07: PROCESAMIENTO OCR ---
+      async function processOCR() {
+        const frontFile = document.getElementById("ci-front").files[0];
+        const backFile = document.getElementById("ci-back").files[0];
+
+        if (!frontFile || !backFile) {
+          alert("Por favor, sube el anverso y reverso de tu cédula.");
+          return;
+        }
+
+        const btn = document.getElementById("btn-ocr");
+        const status = document.getElementById("ocr-status");
+        btn.disabled = true;
+        status.classList.remove("hidden");
+
+        const formData = new FormData();
+        formData.append("front", frontFile);
+        formData.append("back", backFile);
+
+        try {
+          const res = await fetch("/api/ocr", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await res.json();
+
+          if (result.success) {
+            const { fullname, rut, address } = result.data;
+            const ocrMetadata = {}; // Para guardar la confianza en BD (T6)
+
+            // Función helper para llenar inputs y aplicar estilos según confianza
+            const fillInput = (inputId, ocrField) => {
+              const input = document.getElementById(inputId);
+              if (input && ocrField) {
+                input.value = ocrField.value;
+                ocrMetadata[inputId] = ocrField.confidence;
+
+                // T5: Marcar visualmente campos con baja confianza (menor a 80%)
+                if (ocrField.confidence < 0.8) {
+                  input.classList.add(
+                    "border-orange-500",
+                    "bg-orange-50",
+                    "ring-2",
+                    "ring-orange-200",
+                  );
+                  // Añadir un mensaje debajo si no existe
+                  if (
+                    !input.nextElementSibling ||
+                    !input.nextElementSibling.classList.contains("ocr-warning")
+                  ) {
+                    const warning = document.createElement("p");
+                    warning.className =
+                      "text-xs text-orange-600 mt-1 ocr-warning";
+                    warning.innerHTML =
+                      '<i class="fas fa-exclamation-triangle"></i> Por favor revisa este dato, la extracción fue dudosa.';
+                    input.parentNode.insertBefore(warning, input.nextSibling);
+                  }
+                } else {
+                  // Limpiar estilos si se hace de nuevo y es exitoso
+                  input.classList.remove(
+                    "border-orange-500",
+                    "bg-orange-50",
+                    "ring-2",
+                    "ring-orange-200",
+                  );
+                  if (
+                    input.nextElementSibling &&
+                    input.nextElementSibling.classList.contains("ocr-warning")
+                  ) {
+                    input.nextElementSibling.remove();
+                  }
+                }
+              }
+            };
+
+            fillInput("form-fullname", fullname);
+            fillInput("form-rut", rut);
+            fillInput('form-address', address);
+            // Nota: Si agregas un input de 'address' a tu formulario, funcionará igual.
+
+            // Guardar metadatos de confianza en el form para enviarlos al backend
+            document.getElementById("form-ocr-data").value =
+              JSON.stringify(ocrMetadata);
+
+            alert(
+              "Datos extraídos correctamente. Revisa la información antes de enviar.",
+            );
+          } else {
+            alert("Error en la extracción: " + result.message);
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Error de conexión con el servidor OCR.");
+        } finally {
+          btn.disabled = false;
+          status.classList.add("hidden");
+        }
       }
     </script>
   </body>
