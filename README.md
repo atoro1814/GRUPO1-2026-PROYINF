@@ -28,12 +28,7 @@ cd GRUPO10-2025-PROYINF
 
 2. Asegúrate de tener Docker Desktop abierto y WSL2 habilitado
 
-3. Navega hasta la carpeta del proyecto:
-```bash
-cd mi-proyecto-node-docker
-```
-
-4. Construye y levanta los contenedores:
+3. Construye y levanta los contenedores desde la raíz del proyecto:
 ```bash
 docker compose up --build
 ```
@@ -62,6 +57,53 @@ docker compose ps
 docker compose logs -f
 ```
 
+## Estructura del Proyecto
+
+El proyecto sigue una arquitectura **Modelo-Vista-Controlador (MVC)** que permite a los integrantes del equipo trabajar en paralelo sobre áreas bien delimitadas.
+
+```
+/
+├── index.js                          ← Entry point del servidor
+├── package.json
+├── Dockerfile
+├── docker-compose.yml
+├── public/                           ← Vista (Frontend)
+│   ├── index.html
+│   ├── css/
+│   └── js/
+└── src/
+    ├── config/
+    │   └── db.js                     ← Conexión a PostgreSQL
+    ├── models/                       ← Acceso a datos (BD)
+    │   ├── db.model.js               ← Inicialización de tablas
+    │   ├── applicant.model.js
+    │   ├── document.model.js
+    │   ├── installment.model.js
+    │   └── notification.model.js
+    ├── controllers/                  ← Lógica de negocio
+    │   ├── auth.controller.js
+    │   ├── applicant.controller.js
+    │   ├── admin.controller.js
+    │   └── ocr.controller.js
+    ├── routes/                       ← Definición de endpoints
+    │   ├── auth.routes.js
+    │   ├── applicant.routes.js
+    │   ├── admin.routes.js
+    │   └── ocr.routes.js
+    └── middlewares/
+        └── upload.middleware.js      ← Manejo de archivos (Multer)
+```
+
+### División del trabajo
+
+| Área | Carpeta | Descripción |
+|---|---|---|
+| Frontend / Vista | `public/` | HTML, CSS y JavaScript del cliente |
+| Modelos / BD | `src/models/` | Queries SQL y acceso a datos |
+| Controladores | `src/controllers/` | Lógica de negocio por dominio |
+| Rutas | `src/routes/` | Definición y mapeo de endpoints |
+| Infraestructura | `Dockerfile`, `docker-compose.yml` | Configuración de contenedores |
+
 ## Wiki
 
 Puede acceder a la Wiki mediante el siguiente [enlace](https://github.com/atoro1814/GRUPO10-2025-PROYINF/wiki)
@@ -74,3 +116,4 @@ Puede acceder a la Wiki mediante el siguiente [enlace](https://github.com/atoro1
 
 ## Aspectos técnicos relevantes
 
+El proyecto utiliza **Node.js con Express** en el backend y **PostgreSQL** como base de datos, ambos orquestados mediante Docker Compose. La arquitectura MVC separa la capa de datos (`models`), la lógica de negocio (`controllers`) y la interfaz de usuario (`public`), facilitando el desarrollo colaborativo sin conflictos entre ramas.
