@@ -28,7 +28,7 @@ cd GRUPO10-2025-PROYINF
 
 2. Asegúrate de tener Docker Desktop abierto y WSL2 habilitado
 
-3. Construye y levanta los contenedores desde la raíz del proyecto:
+3. Una vez en `mvc-project/`, construya y levante los contenedores por medio del siguiente comando:
 ```bash
 docker compose up --build
 ```
