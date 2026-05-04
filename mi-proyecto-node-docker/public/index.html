@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Banco Digital - Grupo 10</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .fade-in {
+        animation: fadeIn 0.4s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      /* HU-01: Comparación lado a lado */
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-100 h-screen flex flex-col">
+    <nav
+      class="bg-emerald-600 text-white p-4 shadow-md flex justify-between items-center"
+    >
+      <div class="flex items-center gap-2 font-bold text-xl">
+        <i class="fas fa-university"></i> Grupo 10 Bank
+      </div>
+      <div id="nav-actions" class="hidden">
+        <span id="user-display" class="mr-4 text-sm font-light"></span>
+        <button
+          onclick="logout()"
+          class="bg-emerald-800 px-3 py-1 rounded hover:bg-emerald-900 text-sm"
+        >
+          Salir
+        </button>
+      </div>
+      <div id="guest-actions">
+        <button
+          onclick="showAdmin()"
+          class="text-xs text-emerald-200 hover:text-white"
+        >
+          Admin Access
+        </button>
+      </div>
+    </nav>
+
+    <div class="flex-grow container mx-auto p-4 max-w-4xl">
+      <div
+        id="view-login"
+        class="fade-in bg-white p-8 rounded-lg shadow-lg max-w-md mx-auto mt-10"
+      >
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-6">
+          Bienvenido
+        </h2>
+
+        <div class="space-y-4">
+          <div class="border-b pb-4">
+            <label class="block text-sm text-gray-600 mb-1"
+              >¿Ya tienes una solicitud?</label
+            >
+            <input
+              type="text"
+              id="login-rut"
+              placeholder="Ingresa tu RUT (ej: 11111111-1)"
+              class="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+            />
+            <button
+              onclick="login()"
+              class="w-full bg-emerald-600 text-white py-2 rounded mt-2 hover:bg-emerald-700 font-semibold"
+            >
+              Ingresar
+            </button>
+          </div>
+
+          <div class="text-center pt-2">
+            <p class="text-gray-500 text-sm mb-2">¿Eres nuevo?</p>
+            <button
+              onclick="changeView('view-simulator')"
+              class="w-full border border-emerald-600 text-emerald-600 py-2 rounded hover:bg-emerald-50 font-semibold"
+            >
+              Simular Préstamo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="view-simulator"
+        class="hidden fade-in bg-white p-6 rounded-lg shadow-lg"
+      >
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">
+          Simulador de Crédito de Consumo
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="space-y-6">
+            <div>
+              <label class="block font-medium text-gray-700"
+                >Monto a solicitar:
+                <span id="lbl-amount" class="text-emerald-600 font-bold"
+                  >$1.000.000</span
+                ></label
+              >
+              <input
+                type="range"
+                id="sim-amount"
+                min="500000"
+                max="10000000"
+                step="100000"
+                value="1000000"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+            <div>
+              <label class="block font-medium text-gray-700"
+                >Plazo (Meses):
+                <span id="lbl-months" class="text-emerald-600 font-bold"
+                  >12</span
+                ></label
+              >
+              <input
+                type="range"
+                id="sim-months"
+                min="6"
+                max="60"
+                step="6"
+                value="12"
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
+            <div
+              class="bg-yellow-50 p-3 rounded border border-yellow-200 text-sm text-yellow-800"
+            >
+              <i class="fas fa-info-circle"></i> Tasa de interés fija: 1.5%
+              mensual.
+            </div>
+            <button
+              onclick="addToCompare()"
+              class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+            >
+              <i class="fas fa-plus"></i> Agregar escenario para comparar
+            </button>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded border">
+            <h3 class="font-bold text-gray-600 mb-2">
+              Comparador de Escenarios
+            </h3>
+            <div id="comparison-container" class="space-y-2">
+              <p class="text-sm text-gray-400 italic text-center mt-10">
+                Agrega escenarios para comparar...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-between items-center border-t pt-4">
+          <button
+            onclick="changeView('view-login')"
+            class="text-gray-500 hover:text-gray-800"
+          >
+            Volver
+          </button>
+          <button
+            onclick="goToForm()"
+            id="btn-continue-apply"
+            class="bg-emerald-600 text-white px-6 py-2 rounded font-bold shadow-lg hover:bg-emerald-700 disabled:opacity-50"
+            disabled
+          >
+            Solicitar este Crédito
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="view-form"
+        class="hidden fade-in bg-white p-6 rounded-lg shadow-lg"
+      >
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+          Completar Solicitud
+        </h2>
+        <div
+          class="mb-6 p-5 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm"
+        >
+          <h3 class="font-bold text-emerald-800 mb-2">
+            <i class="fas fa-id-card"></i> Carga Rápida con Cédula
+          </h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Sube tu cédula (imágenes o PDF) para autocompletar tus datos y
+            agilizar el proceso.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold mb-1 text-gray-700"
+                >Anverso (Frente)</label
+              >
+              <input
+                type="file"
+                id="ci-front"
+                accept="image/*,application/pdf"
+                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-white file:text-emerald-700 border rounded"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold mb-1 text-gray-700"
+                >Reverso (Atrás)</label
+              >
+              <input
+                type="file"
+                id="ci-back"
+                accept="image/*,application/pdf"
+                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-white file:text-emerald-700 border rounded"
+              />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onclick="processOCR()"
+            id="btn-ocr"
+            class="mt-4 bg-emerald-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-emerald-700 transition flex items-center gap-2"
+          >
+            <i class="fas fa-magic"></i> Extraer Datos Automáticamente
+          </button>
+          <p id="ocr-status" class="text-xs text-emerald-600 mt-2 hidden">
+            Procesando imagen, por favor espera...
+          </p>
+        </div>
+        <form id="loan-form" onsubmit="submitApplication(event)">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-bold mb-1"
+                >Nombre Completo</label
+              >
+              <input
+                id="form-fullname"
+                type="text"
+                name="fullname"
+                required
+                class="w-full border p-2 rounded"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-bold mb-1">RUT</label>
+              <input
+                type="text"
+                id="form-rut"
+                name="rut"
+                required
+                placeholder="12345678-9"
+                class="w-full border p-2 rounded"
+              />
+              <input
+                type="hidden"
+                id="form-ocr-data"
+                name="ocrData"
+                value="{}"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-bold mb-1">Dirección</label>
+              <input
+                type="text"
+                id="form-address"
+                name="address"
+                required
+                placeholder="Ej: Av. Siempre Viva 742"
+                class="w-full border p-2 rounded transition-all duration-300"
+              />
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold mb-1"
+                >Correo Electrónico</label
+              >
+              <input
+                type="email"
+                name="email"
+                required
+                class="w-full border p-2 rounded"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-bold mb-1">Renta Líquida</label>
+              <input
+                type="number"
+                name="income"
+                required
+                class="w-full border p-2 rounded"
+              />
+            </div>
+          </div>
+
+          <div
+            class="mb-6 p-4 bg-gray-50 border border-dashed border-gray-300 rounded"
+          >
+            <label class="block text-sm font-bold mb-2"
+              >Adjuntar Documentos (Cédula, Liquidaciones)</label
+            >
+            <input
+              type="file"
+              name="documents"
+              multiple
+              required
+              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+            />
+          </div>
+
+          <input type="hidden" name="amount" id="form-amount" />
+          <input type="hidden" name="months" id="form-months" />
+
+          <button
+            type="submit"
+            class="w-full bg-emerald-600 text-white py-3 rounded font-bold hover:bg-emerald-700"
+          >
+            Enviar Solicitud
+          </button>
+        </form>
+      </div>
+
+      <div
+        id="view-dashboard"
+        class="hidden fade-in bg-white p-6 rounded-lg shadow-lg"
+      >
+        <div class="flex justify-between items-start mb-6 border-b pb-4">
+          <div>
+            <h2 class="text-2xl font-bold text-gray-800">Mi Préstamo</h2>
+            <p class="text-gray-500 text-sm">
+              ID Solicitud: <span id="dash-id"></span>
+            </p>
+          </div>
+          <div class="text-right">
+            <span class="text-xs text-gray-400 uppercase">Estado Actual</span>
+            <div
+              id="dash-status"
+              class="text-lg font-bold px-3 py-1 rounded bg-gray-200 text-gray-700"
+            >
+              Cargando...
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-2 space-y-6">
+            <div
+              id="panel-waiting"
+              class="hidden p-4 bg-yellow-50 border border-yellow-200 rounded text-yellow-800"
+            >
+              <i class="fas fa-clock text-2xl mb-2"></i>
+              <h3 class="font-bold">Solicitud en Evaluación</h3>
+              <p class="text-sm">
+                Tus documentos están siendo revisados. Te notificaremos cuando
+                cambie el estado.
+              </p>
+            </div>
+
+            <div
+              id="panel-rejected"
+              class="hidden p-4 bg-red-50 border border-red-200 rounded text-red-800"
+            >
+              <i class="fas fa-times-circle text-2xl mb-2"></i>
+              <h3 class="font-bold">Solicitud Rechazada</h3>
+              <p class="text-sm">
+                Lamentablemente no cumpliste con los requisitos comerciales.
+              </p>
+            </div>
+
+            <div
+              id="panel-sign"
+              class="hidden border rounded p-6 bg-blue-50 border-blue-200"
+            >
+              <h3 class="font-bold text-blue-900 text-lg mb-2">
+                <i class="fas fa-file-contract"></i> Firma de Contrato
+              </h3>
+              <p class="text-sm text-blue-800 mb-4">
+                Tu crédito fue aprobado. Para continuar, debes firmar el
+                contrato y pagaré digitalmente.
+              </p>
+
+              <div
+                class="bg-white p-4 border rounded mb-4 h-32 overflow-y-auto text-xs text-gray-600"
+              >
+                <strong>CONTRATO DE CRÉDITO DE CONSUMO</strong><br />
+                En Santiago, a fecha de hoy, se acuerda... (Texto legal
+                simulado)...
+              </div>
+
+              <div class="flex gap-2">
+                <button
+                  onclick="signContract()"
+                  class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-bold"
+                >
+                  <i class="fas fa-fingerprint"></i> Firmar con Clave Única
+                </button>
+                <button
+                  onclick="signContract()"
+                  class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-bold"
+                >
+                  <i class="fas fa-fingerprint"></i> Firmar con Biometria Facial
+                </button>
+              </div>
+            </div>
+
+            <div
+              id="panel-disbursement"
+              class="hidden p-4 bg-purple-50 border border-purple-200 rounded text-purple-800"
+            >
+              <i class="fas fa-university text-2xl mb-2"></i>
+              <h3 class="font-bold">Esperando Desembolso</h3>
+              <p class="text-sm">
+                Contrato firmado. Estamos procesando la transferencia a tu
+                cuenta.
+              </p>
+            </div>
+
+            <div id="panel-payment" class="hidden">
+              <h3 class="font-bold text-gray-800 mb-3">
+                <i class="fas fa-money-bill-wave text-emerald-600"></i> Tabla de
+                Pagos
+              </h3>
+              <div class="overflow-hidden border rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th
+                        class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
+                      >
+                        #
+                      </th>
+                      <th
+                        class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Vencimiento
+                      </th>
+                      <th
+                        class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Monto
+                      </th>
+                      <th
+                        class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase"
+                      >
+                        Acción
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="installments-table"
+                    class="bg-white divide-y divide-gray-200"
+                  ></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div
+              id="panel-closed"
+              class="hidden p-4 bg-green-100 border border-green-300 rounded text-green-800 text-center"
+            >
+              <i class="fas fa-check-circle text-4xl mb-2"></i>
+              <h3 class="font-bold text-xl">¡Crédito Pagado!</h3>
+              <p>No tienes deuda pendiente.</p>
+            </div>
+          </div>
+
+          <div class="border-l pl-6">
+            <h3 class="font-bold text-gray-700 mb-3 text-sm uppercase">
+              Notificaciones
+            </h3>
+            <div
+              id="notifications-list"
+              class="space-y-3 max-h-96 overflow-y-auto pr-2"
+            >
+              <p class="text-xs text-gray-400">Sin notificaciones nuevas.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        id="view-admin"
+        class="hidden fade-in bg-slate-800 text-white p-6 rounded-lg shadow-xl mt-10"
+      >
+        <div class="flex justify-between mb-4">
+          <h2 class="text-xl font-bold text-emerald-400">
+            Panel Administrativo (Simulación)
+          </h2>
+          <button
+            onclick="changeView('view-login')"
+            class="text-gray-400 text-sm"
+          >
+            Cerrar
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm text-left text-gray-300">
+            <thead class="text-xs text-gray-400 uppercase bg-slate-700">
+              <tr>
+                <th class="px-4 py-3">ID / RUT</th>
+                <th class="px-4 py-3">Estado</th>
+                <th class="px-4 py-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // --- ESTADO GLOBAL ---
+      let currentUserId = null;
+      let comparisonScenarios = []; // Para HU-01
+
+      // --- NAVEGACIÓN ---
+      function changeView(viewId) {
+        [
+          "view-login",
+          "view-simulator",
+          "view-form",
+          "view-dashboard",
+          "view-admin",
+        ].forEach((id) => {
+          document.getElementById(id).classList.add("hidden");
+        });
+        document.getElementById(viewId).classList.remove("hidden");
+
+        // Navbar logica
+        if (viewId === "view-dashboard") {
+          document.getElementById("nav-actions").classList.remove("hidden");
+          document.getElementById("guest-actions").classList.add("hidden");
+        } else {
+          document.getElementById("nav-actions").classList.add("hidden");
+          document.getElementById("guest-actions").classList.remove("hidden");
+        }
+      }
+
+      // --- HU-01: SIMULADOR ---
+      const simAmount = document.getElementById("sim-amount");
+      const simMonths = document.getElementById("sim-months");
+
+      function updateSimulationDisplay() {
+        document.getElementById("lbl-amount").innerText =
+          "$" + parseInt(simAmount.value).toLocaleString("es-CL");
+        document.getElementById("lbl-months").innerText = simMonths.value;
+      }
+
+      simAmount.addEventListener("input", updateSimulationDisplay);
+      simMonths.addEventListener("input", updateSimulationDisplay);
+
+      function calculateScenario(amount, months) {
+        const rate = 0.015;
+        const monthly =
+          (amount * (rate * Math.pow(1 + rate, months))) /
+          (Math.pow(1 + rate, months) - 1);
+        return {
+          amount,
+          months,
+          monthly: Math.round(monthly),
+          total: Math.round(monthly * months),
+        };
+      }
+
+      function addToCompare() {
+        if (comparisonScenarios.length >= 2) comparisonScenarios = []; // Reset si ya hay 2 para simplificar UI
+
+        const scenario = calculateScenario(
+          parseInt(simAmount.value),
+          parseInt(simMonths.value),
+        );
+        comparisonScenarios.push(scenario);
+        renderComparison();
+      }
+
+      function renderComparison() {
+        const container = document.getElementById("comparison-container");
+        container.innerHTML = ""; // Limpiar
+        container.className =
+          comparisonScenarios.length > 1 ? "comparison-grid" : "";
+
+        comparisonScenarios.forEach((sc, idx) => {
+          const div = document.createElement("div");
+          div.className =
+            "bg-white p-3 rounded shadow border border-gray-200 text-sm relative";
+          div.innerHTML = `
+                    <div class="absolute -top-2 -right-2 bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">${
+                      idx + 1
+                    }</div>
+                    <p><strong>Monto:</strong> $${sc.amount.toLocaleString()}</p>
+                    <p><strong>Plazo:</strong> ${sc.months} cuotas</p>
+                    <p class="text-emerald-600"><strong>Cuota: $${sc.monthly.toLocaleString()}</strong></p>
+                    <p class="text-xs text-gray-500">Total: $${sc.total.toLocaleString()}</p>
+                    <button onclick="selectScenario(${idx})" class="mt-2 w-full bg-slate-100 hover:bg-slate-200 text-xs py-1 rounded">Elegir este</button>
+                `;
+          container.appendChild(div);
+        });
+
+        document.getElementById("btn-continue-apply").disabled =
+          comparisonScenarios.length === 0;
+      }
+
+      function selectScenario(index) {
+        const sc = comparisonScenarios[index];
+        // Prellenar form oculto
+        document.getElementById("form-amount").value = sc.amount;
+        document.getElementById("form-months").value = sc.months;
+        changeView("view-form");
+      }
+
+      function goToForm() {
+        if (comparisonScenarios.length > 0)
+          selectScenario(comparisonScenarios.length - 1);
+      }
+
+      // --- HU-02: COMPLETAR SOLICITUD ---
+      async function submitApplication(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+
+        try {
+          const res = await fetch("/apply", { method: "POST", body: formData });
+          const data = await res.json();
+
+          if (data.success) {
+            alert("Solicitud enviada exitosamente. ID: " + data.applicantId);
+            currentUserId = data.applicantId;
+            loadDashboard();
+          } else {
+            alert("Error: " + data.message);
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Error de conexión");
+        }
+      }
+
+      // --- LOGIN ---
+      async function login() {
+        const rut = document.getElementById("login-rut").value;
+        if (!rut) return alert("Ingresa un RUT");
+
+        try {
+          const res = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rut }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            currentUserId = data.user.id;
+            loadDashboard();
+          } else {
+            alert(data.message);
+          }
+        } catch (err) {
+          alert("Error de conexión");
+        }
+      }
+
+      function logout() {
+        currentUserId = null;
+        changeView("view-login");
+      }
+
+      // --- DASHBOARD LOGIC (Manejo de Estados) ---
+      async function loadDashboard() {
+        if (!currentUserId) return;
+        changeView("view-dashboard");
+
+        const res = await fetch(`/applicant/${currentUserId}`);
+        if (!res.ok) return alert("Error cargando datos");
+
+        const { user, installments, notifications } = await res.json();
+
+        // Info Usuario
+        document.getElementById("dash-id").innerText = user.id;
+        document.getElementById("user-display").innerText = user.fullname;
+
+        // Estado y Paneles
+        const statusBadge = document.getElementById("dash-status");
+        const mapStatus = {
+          submitted: {
+            text: "En Evaluación",
+            color: "bg-yellow-200 text-yellow-800",
+          },
+          approved: { text: "Aprobado", color: "bg-blue-200 text-blue-800" },
+          rejected: { text: "Rechazado", color: "bg-red-200 text-red-800" },
+          signed: { text: "Firmado", color: "bg-purple-200 text-purple-800" },
+          disbursed: {
+            text: "Activo",
+            color: "bg-emerald-200 text-emerald-800",
+          },
+          closed: { text: "Pagado", color: "bg-gray-300 text-gray-800" },
+        };
+
+        const st = mapStatus[user.status] || {
+          text: user.status,
+          color: "bg-gray-200",
+        };
+        statusBadge.innerText = st.text;
+        statusBadge.className = `text-lg font-bold px-3 py-1 rounded ${st.color}`;
+
+        // Resetear paneles
+        [
+          "panel-waiting",
+          "panel-rejected",
+          "panel-sign",
+          "panel-disbursement",
+          "panel-payment",
+          "panel-closed",
+        ].forEach((id) => document.getElementById(id).classList.add("hidden"));
+
+        // Mostrar panel correcto según estado
+        if (user.status === "submitted")
+          document.getElementById("panel-waiting").classList.remove("hidden");
+        if (user.status === "rejected")
+          document.getElementById("panel-rejected").classList.remove("hidden");
+        if (user.status === "approved")
+          document.getElementById("panel-sign").classList.remove("hidden"); // HU-03
+        if (user.status === "signed")
+          document
+            .getElementById("panel-disbursement")
+            .classList.remove("hidden"); // Esperando HU-05
+        if (user.status === "disbursed") {
+          document.getElementById("panel-payment").classList.remove("hidden"); // HU-04
+          renderInstallments(installments);
+        }
+        if (user.status === "closed")
+          document.getElementById("panel-closed").classList.remove("hidden");
+
+        // Render HU-06 Notificaciones
+        const notifContainer = document.getElementById("notifications-list");
+        notifContainer.innerHTML = "";
+        notifications.forEach((n) => {
+          const d = new Date(n.created_at).toLocaleDateString();
+          const div = document.createElement("div");
+          div.className =
+            "bg-slate-50 p-2 rounded border-l-4 border-emerald-500 text-xs";
+          div.innerHTML = `<strong>${n.type}</strong> <span class="text-gray-400 ml-1">${d}</span><p class="mt-1">${n.message}</p>`;
+          notifContainer.appendChild(div);
+        });
+      }
+
+      // --- HU-03: LOGICA DE FIRMA ---
+      async function signContract() {
+        if (
+          !confirm(
+            "¿Confirmas que has leído el contrato y deseas firmar con tu Clave Única?",
+          )
+        )
+          return;
+
+        const res = await fetch("/sign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ applicantId: currentUserId }),
+        });
+        if (res.ok) {
+          alert("Documentos firmados correctamente.");
+          loadDashboard();
+        } else {
+          alert("Error al firmar.");
+        }
+      }
+
+      // --- HU-04: LOGICA DE PAGOS ---
+      function renderInstallments(list) {
+        const tbody = document.getElementById("installments-table");
+        tbody.innerHTML = "";
+        list.forEach((inst) => {
+          const isPaid = inst.status === "paid";
+          const row = document.createElement("tr");
+          row.innerHTML = `
+                    <td class="px-4 py-2 text-sm text-gray-500">${
+                      inst.installment_number
+                    }</td>
+                    <td class="px-4 py-2 text-sm text-gray-500">${new Date(
+                      inst.due_date,
+                    ).toLocaleDateString()}</td>
+                    <td class="px-4 py-2 text-sm font-bold text-gray-700">$${parseInt(
+                      inst.amount,
+                    ).toLocaleString()}</td>
+                    <td class="px-4 py-2 text-center">
+                        ${
+                          isPaid
+                            ? '<span class="text-green-600 font-bold text-xs"><i class="fas fa-check"></i> Pagado</span>'
+                            : `<button onclick="payInstallment(${inst.id})" class="bg-emerald-500 text-white px-2 py-1 rounded text-xs hover:bg-emerald-600">Pagar</button>`
+                        }
+                    </td>
+                `;
+          tbody.appendChild(row);
+        });
+      }
+
+      async function payInstallment(id) {
+        if (!confirm("¿Proceder con el pago simulado?")) return;
+        const res = await fetch("/pay-installment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ installmentId: id }),
+        });
+        if (res.ok) {
+          alert("Pago realizado con éxito. Comprobante enviado al correo.");
+          loadDashboard();
+        } else {
+          alert("Error en el pago.");
+        }
+      }
+
+      // --- ADMIN PANEL (Para Demo) ---
+      async function showAdmin() {
+        changeView("view-admin");
+        const res = await fetch("/admin/applicants");
+        const list = await res.json();
+        const tbody = document.getElementById("admin-table");
+        tbody.innerHTML = "";
+
+        list.forEach((app) => {
+          let actions = "";
+          if (app.status === "submitted") {
+            actions = `
+                        <button onclick="adminAction(${app.id}, 'approved')" class="text-xs bg-blue-500 text-white px-2 py-1 rounded">Aprobar</button>
+                        <button onclick="adminAction(${app.id}, 'rejected')" class="text-xs bg-red-500 text-white px-2 py-1 rounded">Rechazar</button>
+                    `;
+          } else if (app.status === "signed") {
+            actions = `<button onclick="adminDisburse(${app.id})" class="text-xs bg-purple-500 text-white px-2 py-1 rounded">Desembolsar (HU-05)</button>`;
+          } else {
+            actions = `<span class="text-gray-500 text-xs">-</span>`;
+          }
+
+          const tr = document.createElement("tr");
+          tr.className = "border-b border-slate-700";
+          tr.innerHTML = `
+                    <td class="px-4 py-2">${app.id} <br> <span class="text-gray-400 text-xs">${app.rut}</span></td>
+                    <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-slate-600 text-xs">${app.status}</span></td>
+                    <td class="px-4 py-2 gap-1 flex">${actions}</td>
+                `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      async function adminAction(id, status) {
+        await fetch("/admin/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ applicantId: id, status }),
+        });
+        showAdmin();
+      }
+
+      async function adminDisburse(id) {
+        await fetch("/admin/disburse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ applicantId: id }),
+        });
+        showAdmin();
+      }
+
+      // --- HU-07: PROCESAMIENTO OCR ---
+      async function processOCR() {
+        const frontFile = document.getElementById("ci-front").files[0];
+        const backFile = document.getElementById("ci-back").files[0];
+
+        if (!frontFile || !backFile) {
+          alert("Por favor, sube el anverso y reverso de tu cédula.");
+          return;
+        }
+
+        const btn = document.getElementById("btn-ocr");
+        const status = document.getElementById("ocr-status");
+        btn.disabled = true;
+        status.classList.remove("hidden");
+
+        const formData = new FormData();
+        formData.append("front", frontFile);
+        formData.append("back", backFile);
+
+        try {
+          const res = await fetch("/api/ocr", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await res.json();
+
+          if (result.success) {
+            const { fullname, rut, address } = result.data;
+            const ocrMetadata = {}; // Para guardar la confianza en BD (T6)
+
+            // Función helper para llenar inputs y aplicar estilos según confianza
+            const fillInput = (inputId, ocrField) => {
+              const input = document.getElementById(inputId);
+              if (input && ocrField) {
+                input.value = ocrField.value;
+                ocrMetadata[inputId] = ocrField.confidence;
+
+                // T5: Marcar visualmente campos con baja confianza (menor a 80%)
+                if (ocrField.confidence < 0.8) {
+                  input.classList.add(
+                    "border-orange-500",
+                    "bg-orange-50",
+                    "ring-2",
+                    "ring-orange-200",
+                  );
+                  // Añadir un mensaje debajo si no existe
+                  if (
+                    !input.nextElementSibling ||
+                    !input.nextElementSibling.classList.contains("ocr-warning")
+                  ) {
+                    const warning = document.createElement("p");
+                    warning.className =
+                      "text-xs text-orange-600 mt-1 ocr-warning";
+                    warning.innerHTML =
+                      '<i class="fas fa-exclamation-triangle"></i> Por favor revisa este dato, la extracción fue dudosa.';
+                    input.parentNode.insertBefore(warning, input.nextSibling);
+                  }
+                } else {
+                  // Limpiar estilos si se hace de nuevo y es exitoso
+                  input.classList.remove(
+                    "border-orange-500",
+                    "bg-orange-50",
+                    "ring-2",
+                    "ring-orange-200",
+                  );
+                  if (
+                    input.nextElementSibling &&
+                    input.nextElementSibling.classList.contains("ocr-warning")
+                  ) {
+                    input.nextElementSibling.remove();
+                  }
+                }
+              }
+            };
+
+            fillInput("form-fullname", fullname);
+            fillInput("form-rut", rut);
+            fillInput('form-address', address);
+            // Nota: Si agregas un input de 'address' a tu formulario, funcionará igual.
+
+            // Guardar metadatos de confianza en el form para enviarlos al backend
+            document.getElementById("form-ocr-data").value =
+              JSON.stringify(ocrMetadata);
+
+            alert(
+              "Datos extraídos correctamente. Revisa la información antes de enviar.",
+            );
+          } else {
+            alert("Error en la extracción: " + result.message);
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Error de conexión con el servidor OCR.");
+        } finally {
+          btn.disabled = false;
+          status.classList.add("hidden");
+        }
+      }
+    </script>
+  </body>
+</html>
