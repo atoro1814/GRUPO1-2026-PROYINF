@@ -1,0 +1,1 @@
+{"rule":"ENGLISH_WORD_REPEAT_RULE","sentence":"^\\QPara ejecutar este proyecto necesitarás:\nDocker\nDocker Compose (v2.0+)\nDocker Desktop (para usuarios de Windows)\nWSL2 habilitado en Docker Desktop (para usuarios de Windows)\\E$"}
