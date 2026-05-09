@@ -46,6 +46,17 @@ async function initializeDb() {
       created_at TIMESTAMP DEFAULT NOW()
     );
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS income_records (
+      id SERIAL PRIMARY KEY,
+      applicant_id INTEGER REFERENCES applicants(id) ON DELETE CASCADE,
+      liquidacion_number INTEGER NOT NULL,        -- 1, 2 o 3
+      amount NUMERIC NOT NULL,                   -- monto extraído o corregido manualmente
+      confidence NUMERIC,                        -- nivel de confianza OCR (0.0 a 1.0)
+      manually_corrected BOOLEAN DEFAULT FALSE,  -- TRUE si el usuario editó el valor
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+  `);
   console.log('Base de datos inicializada/verificada.');
 }
 
