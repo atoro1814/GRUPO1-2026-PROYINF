@@ -28,8 +28,9 @@ cd GRUPO10-2025-PROYINF
 
 2. Asegúrate de tener Docker Desktop abierto y WSL2 habilitado
 
-3. Una vez en `mvc-project/`, construya y levante los contenedores por medio del siguiente comando:
+3. Navega a la carpeta del proyecto y construye los contenedores:
 ```bash
+cd mvc-project
 docker compose up --build
 ```
 
@@ -78,13 +79,14 @@ El proyecto sigue una arquitectura **Modelo-Vista-Controlador (MVC)** que permit
     │   ├── db.model.js               ← Inicialización de tablas
     │   ├── applicant.model.js
     │   ├── document.model.js
+    │   ├── income.model.js           ← Liquidaciones de sueldo (HU-10)
     │   ├── installment.model.js
     │   └── notification.model.js
     ├── controllers/                  ← Lógica de negocio
     │   ├── auth.controller.js
     │   ├── applicant.controller.js
     │   ├── admin.controller.js
-    │   └── ocr.controller.js
+    │   └── ocr.controller.js         ← OCR cédula (HU-07) y liquidaciones (HU-10)
     ├── routes/                       ← Definición de endpoints
     │   ├── auth.routes.js
     │   ├── applicant.routes.js
@@ -117,3 +119,5 @@ Puede acceder a la Wiki mediante el siguiente [enlace](https://github.com/atoro1
 ## Aspectos técnicos relevantes
 
 El proyecto utiliza **Node.js con Express** en el backend y **PostgreSQL** como base de datos, ambos orquestados mediante Docker Compose. La arquitectura MVC separa la capa de datos (`models`), la lógica de negocio (`controllers`) y la interfaz de usuario (`public`), facilitando el desarrollo colaborativo sin conflictos entre ramas.
+
+Las pruebas de los endpoints se realizan con **Postman**, mediante una colección que cubre el flujo completo de una solicitud (creación, OCR, aprobación, firma, desembolso y pago de cuotas).
