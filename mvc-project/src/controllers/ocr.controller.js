@@ -20,12 +20,9 @@ function callOcrService(fileBuffer) {
 
 const OcrController = {
   // POST /api/ocr/income — HU-10: Procesamiento OCR de liquidaciones de sueldo
+  // Si se envía applicantId, persiste los datos. Si no, solo devuelve los resultados del OCR.
   processIncome: async (req, res) => {
     const { applicantId } = req.body;
-
-    if (!applicantId) {
-      return res.status(400).json({ success: false, message: 'applicantId es requerido.' });
-    }
 
     const files = req.files; // Array de hasta 3 archivos con fieldname 'liquidaciones'
     if (!files || files.length === 0) {
@@ -36,12 +33,15 @@ const OcrController = {
     }
 
     try {
-      const applicant = await ApplicantModel.findById(applicantId);
-      if (!applicant) {
-        return res.status(404).json({ success: false, message: 'Solicitante no encontrado.' });
+      // Verificar si applicant existe (solo si se proporciona applicantId)
+      if (applicantId) {
+        const applicant = await ApplicantModel.findById(applicantId);
+        if (!applicant) {
+          return res.status(404).json({ success: false, message: 'Solicitante no encontrado.' });
+        }
       }
 
-      // T4 se ocupa del procesamiento — aquí llamamos al OCR por cada archivo
+      // T3 + T4: Procesar OCR por cada archivo (sin requerir persistencia aún)
       const ocrResults = await Promise.all(
         files.map((file, index) =>
           callOcrService(file.buffer).then((result) => ({
@@ -53,41 +53,44 @@ const OcrController = {
         )
       );
 
-      // Persistir en BD dentro de una transacción (T6)
       const average = Math.round(
         ocrResults.reduce((sum, r) => sum + r.amount, 0) / ocrResults.length
       );
 
-      let savedRecords = [];
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
+      // T6: Persistir en BD si se proporciona applicantId
+      let savedRecords = null;
+      if (applicantId) {
+        savedRecords = [];
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
 
-        for (const r of ocrResults) {
-          const result = await client.query(
-            `INSERT INTO income_records (applicant_id, liquidacion_number, amount, confidence)
-             VALUES ($1, $2, $3, $4) RETURNING *`,
-            [applicantId, r.liquidacion_number, r.amount, r.confidence]
+          for (const r of ocrResults) {
+            const result = await client.query(
+              `INSERT INTO income_records (applicant_id, liquidacion_number, amount, confidence)
+               VALUES ($1, $2, $3, $4) RETURNING *`,
+              [applicantId, r.liquidacion_number, r.amount, r.confidence]
+            );
+            savedRecords.push(result.rows[0]);
+          }
+
+          await client.query(
+            'UPDATE applicants SET income = $1 WHERE id = $2',
+            [average, applicantId]
           );
-          savedRecords.push(result.rows[0]);
+
+          await client.query('COMMIT');
+        } catch (err) {
+          await client.query('ROLLBACK');
+          throw err;
+        } finally {
+          client.release();
         }
-
-        await client.query(
-          'UPDATE applicants SET income = $1 WHERE id = $2',
-          [average, applicantId]
-        );
-
-        await client.query('COMMIT');
-      } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-      } finally {
-        client.release();
       }
 
       const liquidacionesResponse = ocrResults.map((r, i) => ({
         ...r,
-        id: savedRecords[i].id,
+        id: savedRecords ? savedRecords[i].id : null, // ID null si no fue persistido aún
       }));
 
       return res.json({
@@ -95,6 +98,7 @@ const OcrController = {
         liquidaciones: liquidacionesResponse,
         ingreso_promedio: average,
         needs_review: ocrResults.some((r) => r.needs_review),
+        persisted: !!applicantId,
       });
     } catch (error) {
       console.error('Error en OCR de ingresos:', error);
@@ -155,7 +159,7 @@ const OcrController = {
           success: true,
           data: {
             fullname: { value: 'JUAN PEREZ SOTO', confidence: 0.98 },
-            rut: { value: '11111111-1', confidence: 0.99 },
+            rut: { value: '11.111.111-1', confidence: 0.99 },
             // Simulamos que la dirección no se leyó bien
             address: { value: 'AV SIEMPRE VIVA 742', confidence: 0.65 },
           },

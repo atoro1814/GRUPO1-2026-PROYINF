@@ -186,153 +186,146 @@
         </div>
       </div>
 
-      <div
-        id="view-form"
-        class="hidden fade-in bg-white p-6 rounded-lg shadow-lg"
-      >
-        <h2 class="text-xl font-bold text-gray-800 mb-4">
-          Completar Solicitud
-        </h2>
-        <div
-          class="mb-6 p-5 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm"
-        >
-          <h3 class="font-bold text-emerald-800 mb-2">
-            <i class="fas fa-id-card"></i> Carga Rápida con Cédula
-          </h3>
-          <p class="text-sm text-gray-600 mb-4">
-            Sube tu cédula (imágenes o PDF) para autocompletar tus datos y
-            agilizar el proceso.
-          </p>
+      <div id="view-form" class="hidden fade-in bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Completar Solicitud</h2>
 
+        <div class="mb-6 p-5 bg-purple-50 border border-purple-200 rounded-lg shadow-sm">
+          <h3 class="font-bold text-purple-800 mb-4">
+            <i class="fas fa-list-check"></i> ¿Cómo deseas ingresar tus datos?
+          </h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-bold mb-1 text-gray-700"
-                >Anverso (Frente)</label
-              >
-              <input
-                type="file"
-                id="ci-front"
-                accept="image/*,application/pdf"
-                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-white file:text-emerald-700 border rounded"
-              />
-            </div>
-            <div>
-              <label class="block text-xs font-bold mb-1 text-gray-700"
-                >Reverso (Atrás)</label
-              >
-              <input
-                type="file"
-                id="ci-back"
-                accept="image/*,application/pdf"
-                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-white file:text-emerald-700 border rounded"
-              />
+            <button type="button" onclick="setMode('manual')" id="btn-mode-manual" class="p-4 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition text-left focus:ring-2 focus:ring-purple-500">
+              <div class="flex items-center gap-3">
+                <i class="fas fa-keyboard text-2xl text-gray-600"></i>
+                <div>
+                  <p class="font-bold text-gray-800">Ingreso Manual</p>
+                  <p class="text-xs text-gray-600">Rellena el formulario tú mismo</p>
+                </div>
+              </div>
+            </button>
+            <button type="button" onclick="setMode('auto')" id="btn-mode-auto" class="p-4 border-2 border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left focus:ring-2 focus:ring-blue-500">
+              <div class="flex items-center gap-3">
+                <i class="fas fa-magic text-2xl text-blue-600"></i>
+                <div>
+                  <p class="font-bold text-gray-800">Extracción Automática</p>
+                  <p class="text-xs text-gray-600">Sube tus PDFs/imágenes y nosotros lo rellenamos</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div id="auto-upload-section" class="hidden mb-6 space-y-6">
+          <div class="p-5 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm">
+            <h3 class="font-bold text-emerald-800 mb-2"><i class="fas fa-id-card"></i> 1. Carga tu Cédula de Identidad</h3>
+            <p class="text-sm text-gray-600 mb-4">Sube tu cédula para autocompletar tus datos personales.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold mb-1 text-gray-700">Anverso (Frente)</label>
+                <input type="file" id="ci-front" accept="image/*,application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-white file:text-emerald-700 border rounded" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold mb-1 text-gray-700">Reverso (Atrás)</label>
+                <input type="file" id="ci-back" accept="image/*,application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-white file:text-emerald-700 border rounded" />
+              </div>
             </div>
           </div>
 
-          <button
-            type="button"
-            onclick="processOCR()"
-            id="btn-ocr"
-            class="mt-4 bg-emerald-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-emerald-700 transition flex items-center gap-2"
-          >
-            <i class="fas fa-magic"></i> Extraer Datos Automáticamente
+          <div class="p-5 bg-blue-50 border border-blue-200 rounded-lg shadow-sm">
+            <h3 class="font-bold text-blue-800 mb-2"><i class="fas fa-piggy-bank"></i> 2. Carga tus Liquidaciones de Sueldo</h3>
+            <p class="text-sm text-gray-700 mb-3">Sube hasta 3 liquidaciones en PDF (máx 5MB cada una) para calcular tu renta.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <div class="border-2 border-dashed border-blue-300 bg-white rounded-lg p-4 text-center hover:bg-blue-100 transition cursor-pointer" onclick="document.getElementById('liquidacion-1').click()">
+                <input type="file" id="liquidacion-1" accept="application/pdf" class="hidden" onchange="handleLiquidacionChange(1, this)" />
+                <div id="liquidacion-1-display">
+                  <i class="fas fa-cloud-upload-alt text-2xl text-blue-600 mb-2 block"></i>
+                  <p class="text-sm font-semibold text-gray-700">Liquidación 1</p>
+                </div>
+              </div>
+              <div class="border-2 border-dashed border-blue-300 bg-white rounded-lg p-4 text-center hover:bg-blue-100 transition cursor-pointer" onclick="document.getElementById('liquidacion-2').click()">
+                <input type="file" id="liquidacion-2" accept="application/pdf" class="hidden" onchange="handleLiquidacionChange(2, this)" />
+                <div id="liquidacion-2-display">
+                  <i class="fas fa-cloud-upload-alt text-2xl text-blue-600 mb-2 block"></i>
+                  <p class="text-sm font-semibold text-gray-700">Liquidación 2</p>
+                </div>
+              </div>
+              <div class="border-2 border-dashed border-blue-300 bg-white rounded-lg p-4 text-center hover:bg-blue-100 transition cursor-pointer" onclick="document.getElementById('liquidacion-3').click()">
+                <input type="file" id="liquidacion-3" accept="application/pdf" class="hidden" onchange="handleLiquidacionChange(3, this)" />
+                <div id="liquidacion-3-display">
+                  <i class="fas fa-cloud-upload-alt text-2xl text-blue-600 mb-2 block"></i>
+                  <p class="text-sm font-semibold text-gray-700">Liquidación 3</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" onclick="processAllAutoOCR()" id="btn-process-auto" class="w-full bg-blue-600 text-white px-4 py-3 rounded font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-md">
+            <i class="fas fa-cogs"></i> Procesar Documentos y Continuar
           </button>
-          <p id="ocr-status" class="text-xs text-emerald-600 mt-2 hidden">
-            Procesando imagen, por favor espera...
+          <p id="global-ocr-status" class="text-sm text-center text-blue-600 mt-2 hidden font-semibold animate-pulse">
+            Procesando documentos en el servidor, por favor espera...
           </p>
         </div>
-        <form id="loan-form" onsubmit="submitApplication(event)">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-sm font-bold mb-1"
-                >Nombre Completo</label
-              >
-              <input
-                id="form-fullname"
-                type="text"
-                name="fullname"
-                required
-                class="w-full border p-2 rounded"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-bold mb-1">RUT</label>
-              <input
-                type="text"
-                id="form-rut"
-                name="rut"
-                required
-                placeholder="11.111.111-1"
-                class="w-full border p-2 rounded"
-              />
-              <input
-                type="hidden"
-                id="form-ocr-data"
-                name="ocrData"
-                value="{}"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-bold mb-1">Dirección</label>
-              <input
-                type="text"
-                id="form-address"
-                name="address"
-                required
-                placeholder="Ej: Av. Siempre Viva 742"
-                class="w-full border p-2 rounded transition-all duration-300"
-              />
-            </div>
 
-            <div>
-              <label class="block text-sm font-bold mb-1"
-                >Correo Electrónico</label
-              >
-              <input
-                type="email"
-                name="email"
-                required
-                class="w-full border p-2 rounded"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-bold mb-1">Renta Líquida</label>
-              <input
-                type="number"
-                name="income"
-                required
-                class="w-full border p-2 rounded"
-              />
-            </div>
+        <form id="loan-form" class="hidden" onsubmit="submitApplication(event)">
+          <div class="mb-4 pb-2 border-b border-gray-200 flex items-center justify-between">
+            <h3 class="font-bold text-gray-800 text-lg"><i class="fas fa-pen-to-square text-purple-600"></i> Datos de la Solicitud</h3>
+            <span id="form-mode-badge" class="text-xs font-bold px-2 py-1 bg-gray-200 text-gray-700 rounded-full">Modo Manual</span>
           </div>
 
-          <div
-            class="mb-6 p-4 bg-gray-50 border border-dashed border-gray-300 rounded"
-          >
-            <label class="block text-sm font-bold mb-2"
-              >Adjuntar Documentos (Cédula, Liquidaciones)</label
-            >
-            <input
-              type="file"
-              name="documents"
-              multiple
-              required
-              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
-            />
-          </div>
-
+          <input type="hidden" id="form-ocr-data" name="ocrData" value="{}" />
+          <input type="hidden" id="form-income-data" name="incomeOcrData" value="{}" />
           <input type="hidden" name="amount" id="form-amount" />
           <input type="hidden" name="months" id="form-months" />
 
-          <button
-            type="submit"
-            class="w-full bg-emerald-600 text-white py-3 rounded font-bold hover:bg-emerald-700"
-          >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label class="block text-sm font-bold mb-1 text-gray-700">Nombre Completo</label>
+              <input id="form-fullname" type="text" name="fullname" required class="w-full border border-gray-300 p-2.5 rounded focus:ring-2 focus:ring-purple-500 outline-none transition" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold mb-1 text-gray-700">RUT</label>
+              <input type="text" id="form-rut" name="rut" required placeholder="11.111.111-1" class="w-full border border-gray-300 p-2.5 rounded focus:ring-2 focus:ring-purple-500 outline-none transition" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold mb-1 text-gray-700">Dirección</label>
+              <input type="text" id="form-address" name="address" required placeholder="Ej: Av. Siempre Viva 742" class="w-full border border-gray-300 p-2.5 rounded focus:ring-2 focus:ring-purple-500 outline-none transition" />
+            </div>
+            <div>
+              <label class="block text-sm font-bold mb-1 text-gray-700">Correo Electrónico</label>
+              <input type="email" name="email" required class="w-full border border-gray-300 p-2.5 rounded focus:ring-2 focus:ring-purple-500 outline-none transition" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-bold mb-1 text-gray-700">Renta Líquida Mensual Promedio (CLP)</label>
+              
+              <div id="income-breakdown-container" class="hidden mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p class="text-xs font-bold text-blue-800 mb-2">
+                  <i class="fas fa-search-dollar"></i> Desglose extraído (Edita si hay errores):
+                </p>
+                <div id="income-breakdown-list" class="space-y-2"></div>
+              </div>
+
+              <div class="relative">
+                <span class="absolute left-3 top-2.5 text-gray-500 font-bold">$</span>
+                <input type="text" inputmode="numeric" id="form-income" name="income" required placeholder="Ej: 750.000" class="w-full border border-gray-300 pl-8 p-2.5 rounded text-lg font-bold text-green-700 focus:ring-2 focus:ring-green-500 outline-none transition" />
+              </div>
+              <p class="text-xs text-gray-500 mt-1" id="income-hint"><i class="fas fa-info-circle"></i> Ingresa tu sueldo neto después de descuentos.</p>
+            </div>
+          </div>
+
+          <div id="verification-docs-section" class="mb-6 p-4 bg-gray-50 border border-gray-300 rounded-lg">
+            <label class="block text-sm font-bold mb-2 text-gray-800">
+              <i class="fas fa-file-contract"></i> Adjuntar Documentos de Respaldo
+            </label>
+            <p class="text-xs text-gray-600 mb-3">Sube aquí tu cédula, liquidaciones u otros documentos que validen la información ingresada arriba.</p>
+            <input type="file" id="form-documents" name="documents" multiple class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300 cursor-pointer transition" />
+          </div>
+
+          <button type="submit" class="w-full bg-emerald-600 text-white py-3 rounded-lg font-bold text-lg hover:bg-emerald-700 shadow-md transition transform hover:-translate-y-0.5">
             Enviar Solicitud
           </button>
         </form>
       </div>
-
       <div
         id="view-dashboard"
         class="hidden fade-in bg-white p-6 rounded-lg shadow-lg"
@@ -524,59 +517,50 @@
       // --- ESTADO GLOBAL ---
       let currentUserId = null;
       let comparisonScenarios = []; // Para HU-01
+      let liquidacionFiles = {}; // Guardar archivos de liquidaciones
+      let curentFormMode = 'manual'; // 'manual' o 'auto'
 
       // --- FORMATEO DE RUT ---
       function formatRUT(value) {
-        // Remover caracteres especiales, mantener números y K
         let cleaned = value.toUpperCase().replace(/[^\d-K]/g, '').replace(/-/g, '');
-        
         if (cleaned.length === 0) return '';
+        if (cleaned.includes('K') && !cleaned.endsWith('K')) cleaned = cleaned.replace(/K/g, '');
+        if (cleaned.length > 9) cleaned = cleaned.substring(0, 9);
         
-        // Si hay K, debe estar al final (dígito verificador)
-        if (cleaned.includes('K') && !cleaned.endsWith('K')) {
-          cleaned = cleaned.replace(/K/g, '');
-        }
-        
-        // Limitar a 9 caracteres máximo (8 dígitos + 1 verificador)
-        if (cleaned.length > 9) {
-          cleaned = cleaned.substring(0, 9);
-        }
-        
-        // Aplicar formato XX.XXX.XXX-X o X.XXX.XXX-X según longitud
         let formatted = '';
-        if (cleaned.length <= 1) {
-          formatted = cleaned;
-        } else if (cleaned.length <= 2) {
-          formatted = cleaned.substring(0, 1) + '-' + cleaned.substring(1);
-        } else if (cleaned.length <=4) {
-          formatted = cleaned.substring(0, cleaned.length - 1) + '-' + cleaned.substring(cleaned.length-1);
-        } else if (cleaned.length <= 5) {
-          formatted = cleaned.substring(0, 1) + '.' + cleaned.substring(1, cleaned.length-1) + '-' + cleaned.substring(cleaned.length-1);
-        } else if (cleaned.length <= 7) {
-          formatted = cleaned.substring(0, 1) + '.' + cleaned.substring(1, 4) +  '.' + cleaned.substring(4, cleaned.length-1) + '-' + cleaned.substring(cleaned.length-1);
-        } else if (cleaned.length <= 8) {
-          formatted = cleaned.substring(0, 1) + '.' + cleaned.substring(1, 4)+ '.' + cleaned.substring(4, 7) + '-' + cleaned.substring(7);
-        } else {
-          formatted = cleaned.substring(0, 2) + '.' + cleaned.substring(2, 5)+ '.' + cleaned.substring(5, 8) + '-' + cleaned.substring(8);
-        }
-        
+        if (cleaned.length <= 1) formatted = cleaned;
+        else if (cleaned.length <= 2) formatted = cleaned.substring(0, 1) + '-' + cleaned.substring(1);
+        else if (cleaned.length <=4) formatted = cleaned.substring(0, cleaned.length - 1) + '-' + cleaned.substring(cleaned.length-1);
+        else if (cleaned.length <= 5) formatted = cleaned.substring(0, 1) + '.' + cleaned.substring(1, cleaned.length-1) + '-' + cleaned.substring(cleaned.length-1);
+        else if (cleaned.length <= 7) formatted = cleaned.substring(0, 1) + '.' + cleaned.substring(1, 4) +  '.' + cleaned.substring(4, cleaned.length-1) + '-' + cleaned.substring(cleaned.length-1);
+        else if (cleaned.length <= 8) formatted = cleaned.substring(0, 1) + '.' + cleaned.substring(1, 4)+ '.' + cleaned.substring(4, 7) + '-' + cleaned.substring(7);
+        else formatted = cleaned.substring(0, 2) + '.' + cleaned.substring(2, 5)+ '.' + cleaned.substring(5, 8) + '-' + cleaned.substring(8);
         return formatted;
+      }
+
+      // --- FORMATEO DE MONEDA (CLP) ---
+      function formatCurrencyCLP(value) {
+        // Quitamos todo lo que no sea número
+        let cleaned = value.toString().replace(/\D/g, '');
+        // Agregamos el punto cada 3 dígitos
+        return cleaned.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      }
+
+      // Escuchar cuando el usuario escribe en el campo de renta
+      const formIncomeInput = document.getElementById("form-income");
+      if (formIncomeInput) {
+        formIncomeInput.addEventListener("input", function(e) {
+          this.value = formatCurrencyCLP(this.value);
+        });
       }
 
       // --- NAVEGACIÓN ---
       function changeView(viewId) {
-        [
-          "view-login",
-          "view-simulator",
-          "view-form",
-          "view-dashboard",
-          "view-admin",
-        ].forEach((id) => {
+        ["view-login", "view-simulator", "view-form", "view-dashboard", "view-admin"].forEach((id) => {
           document.getElementById(id).classList.add("hidden");
         });
         document.getElementById(viewId).classList.remove("hidden");
 
-        // Navbar logica
         if (viewId === "view-dashboard") {
           document.getElementById("nav-actions").classList.remove("hidden");
           document.getElementById("guest-actions").classList.add("hidden");
@@ -591,106 +575,119 @@
       const simMonths = document.getElementById("sim-months");
 
       function updateSimulationDisplay() {
-        document.getElementById("lbl-amount").innerText =
-          "$" + parseInt(simAmount.value).toLocaleString("es-CL");
+        document.getElementById("lbl-amount").innerText = "$" + parseInt(simAmount.value).toLocaleString("es-CL");
         document.getElementById("lbl-months").innerText = simMonths.value;
       }
 
-      simAmount.addEventListener("input", updateSimulationDisplay);
-      simMonths.addEventListener("input", updateSimulationDisplay);
+      if(simAmount && simMonths) {
+        simAmount.addEventListener("input", updateSimulationDisplay);
+        simMonths.addEventListener("input", updateSimulationDisplay);
+      }
 
-      // --- FORMATEO DE INPUTS RUT ---
       const loginRutInput = document.getElementById("login-rut");
       const formRutInput = document.getElementById("form-rut");
 
-      if (loginRutInput) {
-        loginRutInput.addEventListener("input", (e) => {
-          e.target.value = formatRUT(e.target.value);
-        });
-      }
-
-      if (formRutInput) {
-        formRutInput.addEventListener("input", (e) => {
-          e.target.value = formatRUT(e.target.value);
-        });
-      }
+      if (loginRutInput) loginRutInput.addEventListener("input", (e) => e.target.value = formatRUT(e.target.value));
+      if (formRutInput) formRutInput.addEventListener("input", (e) => e.target.value = formatRUT(e.target.value));
 
       function calculateScenario(amount, months) {
         const rate = 0.015;
-        const monthly =
-          (amount * (rate * Math.pow(1 + rate, months))) /
-          (Math.pow(1 + rate, months) - 1);
-        return {
-          amount,
-          months,
-          monthly: Math.round(monthly),
-          total: Math.round(monthly * months),
-        };
+        const monthly = (amount * (rate * Math.pow(1 + rate, months))) / (Math.pow(1 + rate, months) - 1);
+        return { amount, months, monthly: Math.round(monthly), total: Math.round(monthly * months) };
       }
 
       function addToCompare() {
-        if (comparisonScenarios.length >= 2) comparisonScenarios = []; // Reset si ya hay 2 para simplificar UI
-
-        const scenario = calculateScenario(
-          parseInt(simAmount.value),
-          parseInt(simMonths.value),
-        );
+        if (comparisonScenarios.length >= 2) comparisonScenarios = [];
+        const scenario = calculateScenario(parseInt(simAmount.value), parseInt(simMonths.value));
         comparisonScenarios.push(scenario);
         renderComparison();
       }
 
       function renderComparison() {
         const container = document.getElementById("comparison-container");
-        container.innerHTML = ""; // Limpiar
-        container.className =
-          comparisonScenarios.length > 1 ? "comparison-grid" : "";
+        container.innerHTML = ""; 
+        container.className = comparisonScenarios.length > 1 ? "comparison-grid" : "";
 
         comparisonScenarios.forEach((sc, idx) => {
           const div = document.createElement("div");
-          div.className =
-            "bg-white p-3 rounded shadow border border-gray-200 text-sm relative";
+          div.className = "bg-white p-3 rounded shadow border border-gray-200 text-sm relative";
           div.innerHTML = `
-                    <div class="absolute -top-2 -right-2 bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">${
-                      idx + 1
-                    }</div>
-                    <p><strong>Monto:</strong> $${sc.amount.toLocaleString()}</p>
-                    <p><strong>Plazo:</strong> ${sc.months} cuotas</p>
-                    <p class="text-emerald-600"><strong>Cuota: $${sc.monthly.toLocaleString()}</strong></p>
-                    <p class="text-xs text-gray-500">Total: $${sc.total.toLocaleString()}</p>
-                    <button onclick="selectScenario(${idx})" class="mt-2 w-full bg-slate-100 hover:bg-slate-200 text-xs py-1 rounded">Elegir este</button>
-                `;
+            <div class="absolute -top-2 -right-2 bg-blue-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">${idx + 1}</div>
+            <p><strong>Monto:</strong> $${sc.amount.toLocaleString()}</p>
+            <p><strong>Plazo:</strong> ${sc.months} cuotas</p>
+            <p class="text-emerald-600"><strong>Cuota: $${sc.monthly.toLocaleString()}</strong></p>
+            <p class="text-xs text-gray-500">Total: $${sc.total.toLocaleString()}</p>
+            <button onclick="selectScenario(${idx})" class="mt-2 w-full bg-slate-100 hover:bg-slate-200 text-xs py-1 rounded">Elegir este</button>
+          `;
           container.appendChild(div);
         });
-
-        document.getElementById("btn-continue-apply").disabled =
-          comparisonScenarios.length === 0;
+        document.getElementById("btn-continue-apply").disabled = comparisonScenarios.length === 0;
       }
 
       function selectScenario(index) {
         const sc = comparisonScenarios[index];
-        // Prellenar form oculto
         document.getElementById("form-amount").value = sc.amount;
         document.getElementById("form-months").value = sc.months;
         changeView("view-form");
       }
 
       function goToForm() {
-        if (comparisonScenarios.length > 0)
-          selectScenario(comparisonScenarios.length - 1);
+        if (comparisonScenarios.length > 0) selectScenario(comparisonScenarios.length - 1);
       }
 
       // --- HU-02: COMPLETAR SOLICITUD ---
       async function submitApplication(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
+        
+        const rawIncome = formData.get('income');
+        if (rawIncome) {
+          formData.set('income', rawIncome.replace(/\./g, ''));
+        }
+        // CORRECCIÓN: Validación de documentos según el modo
+        if (currentFormMode === 'manual') {
+          const docsInput = document.getElementById("form-documents");
+          if (!docsInput || docsInput.files.length === 0) {
+            return alert("Para enviar la solicitud manual, debes adjuntar tus documentos de respaldo.");
+          }
+        } else {
+          // Modo Automático: Limpiamos el input vacío e inyectamos los archivos ya subidos
+          formData.delete('documents'); 
+          
+          const frontFile = document.getElementById("ci-front").files[0];
+          const backFile = document.getElementById("ci-back").files[0];
+          
+          if (frontFile) formData.append("documents", frontFile);
+          if (backFile) formData.append("documents", backFile);
+          
+          Object.values(liquidacionFiles).forEach(file => {
+            formData.append("documents", file);
+          });
+        }
 
         try {
           const res = await fetch("/apply", { method: "POST", body: formData });
           const data = await res.json();
 
           if (data.success) {
-            alert("Solicitud enviada exitosamente. ID: " + data.applicantId);
-            currentUserId = data.applicantId;
+            const applicantId = data.applicantId;
+            alert("Solicitud enviada exitosamente. ID: " + applicantId);
+            currentUserId = applicantId;
+
+            // Persistir liquidaciones solo si es necesario (el backend ahora debería recibir todo en /apply, 
+            // pero mantenemos esto si tu backend de OCR necesita una ruta separada para guardarlas en BD).
+            if (Object.keys(liquidacionFiles).length > 0 && currentFormMode === 'auto') {
+              try {
+                const incomeFormData = new FormData();
+                incomeFormData.append('applicantId', applicantId);
+                Object.entries(liquidacionFiles).forEach(([num, file]) => {
+                  incomeFormData.append('liquidaciones', file, `liquidacion-${num}.pdf`);
+                });
+                await fetch("/api/ocr/income", { method: "POST", body: incomeFormData });
+              } catch (incomeError) {
+                console.error('Error al persistir datos de ingresos:', incomeError);
+              }
+            }
             loadDashboard();
           } else {
             alert("Error: " + data.message);
@@ -700,7 +697,6 @@
           alert("Error de conexión");
         }
       }
-
       // --- LOGIN ---
       async function login() {
         const rut = document.getElementById("login-rut").value;
@@ -729,7 +725,7 @@
         changeView("view-login");
       }
 
-      // --- DASHBOARD LOGIC (Manejo de Estados) ---
+      // --- DASHBOARD LOGIC ---
       async function loadDashboard() {
         if (!currentUserId) return;
         changeView("view-dashboard");
@@ -739,84 +735,49 @@
 
         const { user, installments, notifications } = await res.json();
 
-        // Info Usuario
         document.getElementById("dash-id").innerText = user.id;
         document.getElementById("user-display").innerText = user.fullname;
 
-        // Estado y Paneles
         const statusBadge = document.getElementById("dash-status");
         const mapStatus = {
-          submitted: {
-            text: "En Evaluación",
-            color: "bg-yellow-200 text-yellow-800",
-          },
+          submitted: { text: "En Evaluación", color: "bg-yellow-200 text-yellow-800" },
           approved: { text: "Aprobado", color: "bg-blue-200 text-blue-800" },
           rejected: { text: "Rechazado", color: "bg-red-200 text-red-800" },
           signed: { text: "Firmado", color: "bg-purple-200 text-purple-800" },
-          disbursed: {
-            text: "Activo",
-            color: "bg-emerald-200 text-emerald-800",
-          },
+          disbursed: { text: "Activo", color: "bg-emerald-200 text-emerald-800" },
           closed: { text: "Pagado", color: "bg-gray-300 text-gray-800" },
         };
 
-        const st = mapStatus[user.status] || {
-          text: user.status,
-          color: "bg-gray-200",
-        };
+        const st = mapStatus[user.status] || { text: user.status, color: "bg-gray-200" };
         statusBadge.innerText = st.text;
         statusBadge.className = `text-lg font-bold px-3 py-1 rounded ${st.color}`;
 
-        // Resetear paneles
-        [
-          "panel-waiting",
-          "panel-rejected",
-          "panel-sign",
-          "panel-disbursement",
-          "panel-payment",
-          "panel-closed",
-        ].forEach((id) => document.getElementById(id).classList.add("hidden"));
+        ["panel-waiting", "panel-rejected", "panel-sign", "panel-disbursement", "panel-payment", "panel-closed"]
+          .forEach((id) => document.getElementById(id).classList.add("hidden"));
 
-        // Mostrar panel correcto según estado
-        if (user.status === "submitted")
-          document.getElementById("panel-waiting").classList.remove("hidden");
-        if (user.status === "rejected")
-          document.getElementById("panel-rejected").classList.remove("hidden");
-        if (user.status === "approved")
-          document.getElementById("panel-sign").classList.remove("hidden"); // HU-03
-        if (user.status === "signed")
-          document
-            .getElementById("panel-disbursement")
-            .classList.remove("hidden"); // Esperando HU-05
+        if (user.status === "submitted") document.getElementById("panel-waiting").classList.remove("hidden");
+        if (user.status === "rejected") document.getElementById("panel-rejected").classList.remove("hidden");
+        if (user.status === "approved") document.getElementById("panel-sign").classList.remove("hidden"); 
+        if (user.status === "signed") document.getElementById("panel-disbursement").classList.remove("hidden"); 
         if (user.status === "disbursed") {
-          document.getElementById("panel-payment").classList.remove("hidden"); // HU-04
+          document.getElementById("panel-payment").classList.remove("hidden"); 
           renderInstallments(installments);
         }
-        if (user.status === "closed")
-          document.getElementById("panel-closed").classList.remove("hidden");
+        if (user.status === "closed") document.getElementById("panel-closed").classList.remove("hidden");
 
-        // Render HU-06 Notificaciones
         const notifContainer = document.getElementById("notifications-list");
         notifContainer.innerHTML = "";
         notifications.forEach((n) => {
           const d = new Date(n.created_at).toLocaleDateString();
           const div = document.createElement("div");
-          div.className =
-            "bg-slate-50 p-2 rounded border-l-4 border-emerald-500 text-xs";
+          div.className = "bg-slate-50 p-2 rounded border-l-4 border-emerald-500 text-xs";
           div.innerHTML = `<strong>${n.type}</strong> <span class="text-gray-400 ml-1">${d}</span><p class="mt-1">${n.message}</p>`;
           notifContainer.appendChild(div);
         });
       }
 
-      // --- HU-03: LOGICA DE FIRMA ---
       async function signContract() {
-        if (
-          !confirm(
-            "¿Confirmas que has leído el contrato y deseas firmar con tu Clave Única?",
-          )
-        )
-          return;
-
+        if (!confirm("¿Confirmas que has leído el contrato y deseas firmar?")) return;
         const res = await fetch("/sign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -825,12 +786,9 @@
         if (res.ok) {
           alert("Documentos firmados correctamente.");
           loadDashboard();
-        } else {
-          alert("Error al firmar.");
-        }
+        } else alert("Error al firmar.");
       }
 
-      // --- HU-04: LOGICA DE PAGOS ---
       function renderInstallments(list) {
         const tbody = document.getElementById("installments-table");
         tbody.innerHTML = "";
@@ -838,23 +796,14 @@
           const isPaid = inst.status === "paid";
           const row = document.createElement("tr");
           row.innerHTML = `
-                    <td class="px-4 py-2 text-sm text-gray-500">${
-                      inst.installment_number
-                    }</td>
-                    <td class="px-4 py-2 text-sm text-gray-500">${new Date(
-                      inst.due_date,
-                    ).toLocaleDateString()}</td>
-                    <td class="px-4 py-2 text-sm font-bold text-gray-700">$${parseInt(
-                      inst.amount,
-                    ).toLocaleString()}</td>
-                    <td class="px-4 py-2 text-center">
-                        ${
-                          isPaid
-                            ? '<span class="text-green-600 font-bold text-xs"><i class="fas fa-check"></i> Pagado</span>'
-                            : `<button onclick="payInstallment(${inst.id})" class="bg-emerald-500 text-white px-2 py-1 rounded text-xs hover:bg-emerald-600">Pagar</button>`
-                        }
-                    </td>
-                `;
+            <td class="px-4 py-2 text-sm text-gray-500">${inst.installment_number}</td>
+            <td class="px-4 py-2 text-sm text-gray-500">${new Date(inst.due_date).toLocaleDateString()}</td>
+            <td class="px-4 py-2 text-sm font-bold text-gray-700">$${parseInt(inst.amount).toLocaleString()}</td>
+            <td class="px-4 py-2 text-center">
+                ${isPaid ? '<span class="text-green-600 font-bold text-xs"><i class="fas fa-check"></i> Pagado</span>' 
+                         : `<button onclick="payInstallment(${inst.id})" class="bg-emerald-500 text-white px-2 py-1 rounded text-xs hover:bg-emerald-600">Pagar</button>`}
+            </td>
+          `;
           tbody.appendChild(row);
         });
       }
@@ -867,14 +816,12 @@
           body: JSON.stringify({ installmentId: id }),
         });
         if (res.ok) {
-          alert("Pago realizado con éxito. Comprobante enviado al correo.");
+          alert("Pago realizado con éxito.");
           loadDashboard();
-        } else {
-          alert("Error en el pago.");
-        }
+        } else alert("Error en el pago.");
       }
 
-      // --- ADMIN PANEL (Para Demo) ---
+      // --- ADMIN PANEL ---
       async function showAdmin() {
         changeView("view-admin");
         const res = await fetch("/admin/applicants");
@@ -886,11 +833,11 @@
           let actions = "";
           if (app.status === "submitted") {
             actions = `
-                        <button onclick="adminAction(${app.id}, 'approved')" class="text-xs bg-blue-500 text-white px-2 py-1 rounded">Aprobar</button>
-                        <button onclick="adminAction(${app.id}, 'rejected')" class="text-xs bg-red-500 text-white px-2 py-1 rounded">Rechazar</button>
-                    `;
+              <button onclick="adminAction(${app.id}, 'approved')" class="text-xs bg-blue-500 text-white px-2 py-1 rounded">Aprobar</button>
+              <button onclick="adminAction(${app.id}, 'rejected')" class="text-xs bg-red-500 text-white px-2 py-1 rounded">Rechazar</button>
+            `;
           } else if (app.status === "signed") {
-            actions = `<button onclick="adminDisburse(${app.id})" class="text-xs bg-purple-500 text-white px-2 py-1 rounded">Desembolsar (HU-05)</button>`;
+            actions = `<button onclick="adminDisburse(${app.id})" class="text-xs bg-purple-500 text-white px-2 py-1 rounded">Desembolsar</button>`;
           } else {
             actions = `<span class="text-gray-500 text-xs">-</span>`;
           }
@@ -898,125 +845,231 @@
           const tr = document.createElement("tr");
           tr.className = "border-b border-slate-700";
           tr.innerHTML = `
-                    <td class="px-4 py-2">${app.id} <br> <span class="text-gray-400 text-xs">${app.rut}</span></td>
-                    <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-slate-600 text-xs">${app.status}</span></td>
-                    <td class="px-4 py-2 gap-1 flex">${actions}</td>
-                `;
+            <td class="px-4 py-2">${app.id} <br> <span class="text-gray-400 text-xs">${app.rut}</span></td>
+            <td class="px-4 py-2"><span class="px-2 py-0.5 rounded bg-slate-600 text-xs">${app.status}</span></td>
+            <td class="px-4 py-2 gap-1 flex">${actions}</td>
+          `;
           tbody.appendChild(tr);
         });
       }
 
       async function adminAction(id, status) {
-        await fetch("/admin/status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ applicantId: id, status }),
-        });
+        await fetch("/admin/status", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ applicantId: id, status }) });
         showAdmin();
       }
 
       async function adminDisburse(id) {
-        await fetch("/admin/disburse", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ applicantId: id }),
-        });
+        await fetch("/admin/disburse", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ applicantId: id }) });
         showAdmin();
       }
 
-      // --- HU-07: PROCESAMIENTO OCR ---
-      async function processOCR() {
-        const frontFile = document.getElementById("ci-front").files[0];
-        const backFile = document.getElementById("ci-back").files[0];
+      // --- NUEVA LÓGICA UNIFICADA OCR Y FORMULARIO ---
+      function setMode(mode) {
+        currentFormMode = mode; // Guardamos el estado actual
+        const autoSection = document.getElementById('auto-upload-section');
+        const mainForm = document.getElementById('loan-form');
+        const badge = document.getElementById('form-mode-badge');
+        const btnManual = document.getElementById('btn-mode-manual');
+        const btnAuto = document.getElementById('btn-mode-auto');
+        const docsSection = document.getElementById('verification-docs-section'); 
+        
+        // Capturamos los elementos de ingresos que modificamos antes
+        const formIncome = document.getElementById('form-income');
+        const incomeHint = document.getElementById('income-hint');
+        const breakdownContainer = document.getElementById('income-breakdown-container');
 
-        if (!frontFile || !backFile) {
-          alert("Por favor, sube el anverso y reverso de tu cédula.");
+        if (mode === 'manual') {
+          btnManual.classList.add("border-purple-500", "bg-purple-50");
+          btnAuto.classList.remove("border-blue-500", "bg-blue-50");
+          
+          autoSection.classList.add('hidden');
+          mainForm.classList.remove('hidden');
+          docsSection.classList.remove('hidden'); // Exigimos subir documentos
+          
+          // CORRECCIÓN: Habilitamos el campo de ingreso para el Modo Manual
+          formIncome.readOnly = false;
+          formIncome.classList.remove("bg-gray-50"); // Quitamos el fondo de "bloqueado"
+          if (incomeHint) incomeHint.classList.remove("hidden"); // Mostramos la pista
+          if (breakdownContainer) breakdownContainer.classList.add("hidden"); // Ocultamos el desglose OCR
+          formIncome.value = ""; // Limpiamos por si había quedado un cálculo del modo automático
+          
+          badge.textContent = 'Modo Manual';
+          badge.className = 'text-xs font-bold px-2 py-1 bg-purple-100 text-purple-700 rounded-full';
+        } else if (mode === 'auto') {
+          btnAuto.classList.add("border-blue-500", "bg-blue-50");
+          btnManual.classList.remove("border-purple-500", "bg-purple-50");
+
+          mainForm.classList.add('hidden'); 
+          autoSection.classList.remove('hidden');
+          docsSection.classList.add('hidden'); 
+          
+          badge.textContent = 'Modo Automático';
+          badge.className = 'text-xs font-bold px-2 py-1 bg-blue-100 text-blue-700 rounded-full';
+        }
+      }
+
+      function handleLiquidacionChange(num, input) {
+        const file = input.files[0];
+        const displayDiv = document.getElementById(`liquidacion-${num}-display`);
+
+        if (!file) {
+          delete liquidacionFiles[num];
+          displayDiv.innerHTML = `
+            <i class="fas fa-cloud-upload-alt text-2xl text-blue-600 mb-2 block"></i>
+            <p class="text-sm font-semibold text-gray-700">Liquidación ${num}</p>
+            <p class="text-xs text-gray-500 mt-1">PDF (máx 5MB)</p>
+          `;
           return;
         }
 
-        const btn = document.getElementById("btn-ocr");
-        const status = document.getElementById("ocr-status");
+        if (file.type !== 'application/pdf') {
+          alert(`Error: El archivo debe ser PDF.`);
+          input.value = '';
+          return;
+        }
+
+        liquidacionFiles[num] = file;
+        displayDiv.innerHTML = `
+          <i class="fas fa-file-pdf text-2xl text-blue-600 mb-2 block"></i>
+          <p class="text-sm font-semibold text-gray-700 truncate">${file.name}</p>
+          <button type="button" onclick="removeLiquidacion(${num})" class="mt-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded">Eliminar</button>
+        `;
+      }
+
+      function removeLiquidacion(num) {
+        delete liquidacionFiles[num];
+        const input = document.getElementById(`liquidacion-${num}`);
+        input.value = '';
+        handleLiquidacionChange(num, input);
+      }
+
+      // --- NUEVA FUNCIÓN: Recalcular promedio (HU-10) ---
+      function recalculateAverage() {
+        const inputs = document.querySelectorAll('.liq-edit-input');
+        let sum = 0;
+        let count = 0;
+        
+        inputs.forEach(input => {
+          const val = parseInt(input.value);
+          if (!isNaN(val) && val >= 0) {
+            sum += val;
+            count++;
+          }
+        });
+
+        if (count > 0) {
+          const avg = Math.round(sum / count);
+          document.getElementById('form-income').value = formatCurrencyCLP(avg);
+        }
+      }
+
+      // --- ACTUALIZACIÓN: Procesamiento con validaciones de HU-07 y HU-10 ---
+      async function processAllAutoOCR() {
+        const frontFile = document.getElementById("ci-front").files[0];
+        const backFile = document.getElementById("ci-back").files[0];
+        const hasLiquidaciones = Object.keys(liquidacionFiles).length > 0;
+
+        if (!frontFile || !backFile) return alert("Por favor, sube el anverso y reverso de tu cédula.");
+        if (!hasLiquidaciones) return alert("Por favor, sube al menos una liquidación.");
+
+        const btn = document.getElementById("btn-process-auto");
+        const status = document.getElementById("global-ocr-status");
         btn.disabled = true;
         status.classList.remove("hidden");
 
-        const formData = new FormData();
-        formData.append("front", frontFile);
-        formData.append("back", backFile);
-
         try {
-          const res = await fetch("/api/ocr", {
-            method: "POST",
-            body: formData,
+          const ciFormData = new FormData();
+          ciFormData.append("front", frontFile);
+          ciFormData.append("back", backFile);
+
+          const incomeFormData = new FormData();
+          Object.entries(liquidacionFiles).forEach(([num, file]) => {
+            incomeFormData.append('liquidaciones', file, `liquidacion-${num}.pdf`);
           });
-          const result = await res.json();
 
-          if (result.success) {
-            const { fullname, rut, address } = result.data;
-            const ocrMetadata = {}; // Para guardar la confianza en BD (T6)
+          const [ciRes, incomeRes] = await Promise.all([
+            fetch("/api/ocr", { method: "POST", body: ciFormData }),
+            fetch("/api/ocr/income", { method: "POST", body: incomeFormData })
+          ]);
 
-            // Función helper para llenar inputs y aplicar estilos según confianza
-            const fillInput = (inputId, ocrField) => {
+          const ciResult = await ciRes.json();
+          const incomeResult = await incomeRes.json();
+
+          let successCount = 0;
+
+          // LÓGICA HU-07: Llenado y advertencia visual de baja confianza
+          if (ciResult.success) {
+            const fillAndWarn = (inputId, fieldData) => {
               const input = document.getElementById(inputId);
-              if (input && ocrField) {
-                input.value = ocrField.value;
-                ocrMetadata[inputId] = ocrField.confidence;
+              if (!input || !fieldData) return;
+              
+              input.value = fieldData.value || "";
+              
+              // Limpiar advertencias previas
+              input.classList.remove("border-orange-500", "bg-orange-50", "ring-2", "ring-orange-200");
+              if (input.nextElementSibling && input.nextElementSibling.classList.contains("ocr-warning")) {
+                input.nextElementSibling.remove();
+              }
 
-                // T5: Marcar visualmente campos con baja confianza (menor a 80%)
-                if (ocrField.confidence < 0.8) {
-                  input.classList.add(
-                    "border-orange-500",
-                    "bg-orange-50",
-                    "ring-2",
-                    "ring-orange-200",
-                  );
-                  // Añadir un mensaje debajo si no existe
-                  if (
-                    !input.nextElementSibling ||
-                    !input.nextElementSibling.classList.contains("ocr-warning")
-                  ) {
-                    const warning = document.createElement("p");
-                    warning.className =
-                      "text-xs text-orange-600 mt-1 ocr-warning";
-                    warning.innerHTML =
-                      '<i class="fas fa-exclamation-triangle"></i> Por favor revisa este dato, la extracción fue dudosa.';
-                    input.parentNode.insertBefore(warning, input.nextSibling);
-                  }
-                } else {
-                  // Limpiar estilos si se hace de nuevo y es exitoso
-                  input.classList.remove(
-                    "border-orange-500",
-                    "bg-orange-50",
-                    "ring-2",
-                    "ring-orange-200",
-                  );
-                  if (
-                    input.nextElementSibling &&
-                    input.nextElementSibling.classList.contains("ocr-warning")
-                  ) {
-                    input.nextElementSibling.remove();
-                  }
-                }
+              // Aplicar advertencia si la confianza es baja (< 80%)
+              if (fieldData.confidence < 0.8) {
+                input.classList.add("border-orange-500", "bg-orange-50", "ring-2", "ring-orange-200");
+                const warning = document.createElement("p");
+                warning.className = "text-xs text-orange-600 mt-1 ocr-warning font-semibold";
+                warning.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Revisa este dato, quizás no se extrajo correctamente.';
+                input.parentNode.insertBefore(warning, input.nextSibling);
               }
             };
 
-            fillInput("form-fullname", fullname);
-            fillInput("form-rut", rut);
-            fillInput('form-address', address);
-            // Nota: Si agregas un input de 'address' a tu formulario, funcionará igual.
-
-            // Guardar metadatos de confianza en el form para enviarlos al backend
-            document.getElementById("form-ocr-data").value =
-              JSON.stringify(ocrMetadata);
-
-            alert(
-              "Datos extraídos correctamente. Revisa la información antes de enviar.",
-            );
-          } else {
-            alert("Error en la extracción: " + result.message);
+            fillAndWarn("form-fullname", ciResult.data.fullname);
+            fillAndWarn("form-rut", ciResult.data.rut);
+            fillAndWarn("form-address", ciResult.data.address);
+            successCount++;
           }
+
+          // LÓGICA HU-10: Mostrar montos individuales para edición
+          if (incomeResult.success) {
+            document.getElementById("form-income").value = formatCurrencyCLP(incomeResult.ingreso_promedio || "");
+            document.getElementById("form-income").readOnly = true; // Bloqueamos el general para forzar la edición por desglose
+            document.getElementById("income-hint").classList.add("hidden");
+
+            const breakdownContainer = document.getElementById("income-breakdown-container");
+            const breakdownList = document.getElementById("income-breakdown-list");
+            breakdownList.innerHTML = ''; 
+            breakdownContainer.classList.remove("hidden");
+
+            // Generar inputs por cada liquidación
+            incomeResult.liquidaciones.forEach((liq, index) => {
+              const isLowConfidence = liq.needs_review || liq.confidence < 0.75;
+              const colorClass = isLowConfidence ? "border-orange-400 bg-orange-50" : "border-gray-300";
+              const icon = isLowConfidence ? '<i class="fas fa-exclamation-triangle text-orange-500" title="Baja confianza"></i>' : '<i class="fas fa-check-circle text-green-500"></i>';
+
+              const div = document.createElement("div");
+              div.className = "flex justify-between items-center text-sm bg-white p-2 rounded border border-gray-200";
+              div.innerHTML = `
+                <span class="text-gray-700 font-semibold flex items-center gap-2">${icon} Liquidación ${index + 1}:</span>
+                <div class="flex items-center gap-1">
+                  <span class="text-gray-500">$</span>
+                  <input type="number" class="border ${colorClass} p-1 rounded w-28 text-right liq-edit-input focus:ring-2 focus:ring-blue-400 outline-none" data-id="${liq.id || index}" value="${liq.amount}" oninput="recalculateAverage()" />
+                </div>
+              `;
+              breakdownList.appendChild(div);
+            });
+
+            successCount++;
+          }
+
+          if (successCount > 0) {
+            document.getElementById('auto-upload-section').classList.add('hidden');
+            document.getElementById('loan-form').classList.remove('hidden');
+          } else {
+            alert("No se pudieron extraer los datos. Intenta ingresar la información de forma manual.");
+            setMode('manual');
+          }
+
         } catch (error) {
-          console.error(error);
-          alert("Error de conexión con el servidor OCR.");
+          console.error("Error OCR global:", error);
+          alert("Error de conexión al procesar los documentos.");
         } finally {
           btn.disabled = false;
           status.classList.add("hidden");
