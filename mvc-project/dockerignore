@@ -1,0 +1,28 @@
+# Control de versiones
+.git
+.gitignore
+
+# Dependencias (se instalan dentro del contenedor)
+node_modules
+
+# Variables de entorno y secretos
+.env
+.env.*
+
+# Pruebas y artefactos de pruebas
+tests/
+__pycache__/
+*.pyc
+
+# Documentación e inspecciones de código
+README.md
+inspections/
+loadtests/
+
+# Archivos de configuración de IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
